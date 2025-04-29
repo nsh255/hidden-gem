@@ -35,3 +35,44 @@ async def run_spider(background_tasks: BackgroundTasks):
 
     background_tasks.add_task(execute_spider)
     return {"message": "Spider iniciado en segundo plano"}
+
+@router.post("/run")
+async def execute_spider_sync():
+    """
+    Ejecuta el spider de Steam de forma síncrona y devuelve el resultado
+    """
+    try:
+        # Cambia al directorio donde se encuentra el spider
+        project_dir = Path(__file__).parent.parent.parent
+        os.chdir(project_dir)
+        
+        # Ejecuta el spider usando subprocess
+        result = subprocess.run(
+            ["scrapy", "crawl", "games_spider", "-o", "games.json"],
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode != 0:
+            logger.error(f"Error al ejecutar el spider: {result.stderr}")
+            return {
+                "success": False,
+                "message": "Error al ejecutar el spider",
+                "error": result.stderr,
+                "output": result.stdout
+            }
+        else:
+            logger.info("Spider ejecutado correctamente")
+            return {
+                "success": True,
+                "message": "Spider ejecutado correctamente",
+                "output": result.stdout
+            }
+                
+    except Exception as e:
+        error_msg = str(e)
+        logger.exception(f"Error inesperado al ejecutar el spider: {error_msg}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al ejecutar el spider: {error_msg}"
+        )
