@@ -10,8 +10,7 @@ load_dotenv()
 # Obtener SECRET_KEY desde variables de entorno
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    SECRET_KEY = "desarrollosecreto"
-    print("ADVERTENCIA: SECRET_KEY no encontrada en .env, usando clave insegura por defecto")
+    raise ValueError("SECRET_KEY no configurada en .env")
 
 # Configuración para el algoritmo de encriptación
 ALGORITHM = "HS256"
