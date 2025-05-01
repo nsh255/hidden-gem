@@ -79,8 +79,11 @@ def _extract_tags(games: List[Game]) -> Dict[str, int]:
     
     for game in games:
         if game.tags:
-            # Las tags están almacenadas como string separado por comas
-            game_tags = [tag.strip() for tag in game.tags.split(',')]
+            # Manejo flexible del formato de tags (lista o string)
+            if isinstance(game.tags, list):
+                game_tags = [tag.strip() for tag in game.tags]
+            else:
+                game_tags = [tag.strip() for tag in game.tags.split(',')]
             tag_counter.update(game_tags)
     
     return tag_counter
@@ -99,8 +102,11 @@ def _extract_genres(games: List[Game]) -> Dict[str, int]:
     
     for game in games:
         if game.genres:
-            # Los géneros están almacenados como string separado por comas
-            game_genres = [genre.strip() for genre in game.genres.split(',')]
+            # Manejo flexible del formato de géneros (lista o string)
+            if isinstance(game.genres, list):
+                game_genres = [genre.strip() for genre in game.genres]
+            else:
+                game_genres = [genre.strip() for genre in game.genres.split(',')]
             genre_counter.update(game_genres)
     
     return genre_counter
@@ -119,23 +125,35 @@ def _calculate_similarity_score(game: Game, favorite_tags: Dict[str, int], favor
     """
     score = 0.0
     
-    # Procesar tags del juego
+    # Procesar tags del juego con manejo flexible de formato
     if game.tags:
-        game_tags = [tag.strip() for tag in game.tags.split(',')]
+        if isinstance(game.tags, list):
+            game_tags = [tag.strip() for tag in game.tags]
+        else:
+            game_tags = [tag.strip() for tag in game.tags.split(',')]
+            
         for tag in game_tags:
             # Sumar la frecuencia de cada tag coincidente
             score += favorite_tags.get(tag, 0) * 1.0
     
     # Procesar géneros del juego (los géneros tienen más peso)
     if game.genres:
-        game_genres = [genre.strip() for genre in game.genres.split(',')]
+        if isinstance(game.genres, list):
+            game_genres = [genre.strip() for genre in game.genres]
+        else:
+            game_genres = [genre.strip() for genre in game.genres.split(',')]
+            
         for genre in game_genres:
             # Sumar la frecuencia de cada género coincidente (con más peso)
             score += favorite_genres.get(genre, 0) * 2.5
     
     # Normalizar la puntuación por el número de tags y géneros
-    # para no favorecer juegos con muchos tags/géneros
-    total_elements = len(game.tags.split(',') if game.tags else []) + len(game.genres.split(',') if game.genres else [])
+    total_elements = 0
+    if game.tags:
+        total_elements += len(game.tags if isinstance(game.tags, list) else game.tags.split(','))
+    if game.genres:
+        total_elements += len(game.genres if isinstance(game.genres, list) else game.genres.split(','))
+    
     if total_elements > 0:
         score = score / total_elements
     
@@ -164,9 +182,22 @@ def get_recommendations_by_game(game_id: int, user_id: int, db: Session, limit: 
     if not user:
         return []
     
-    # Extraer tags y géneros del juego base
-    base_tags = Counter({tag.strip(): 1 for tag in base_game.tags.split(',')}) if base_game.tags else Counter()
-    base_genres = Counter({genre.strip(): 1 for genre in base_game.genres.split(',')}) if base_game.genres else Counter()
+    # Extraer tags y géneros del juego base con manejo flexible de formato
+    if base_game.tags:
+        if isinstance(base_game.tags, list):
+            base_tags = Counter({tag.strip(): 1 for tag in base_game.tags})
+        else:
+            base_tags = Counter({tag.strip(): 1 for tag in base_game.tags.split(',')})
+    else:
+        base_tags = Counter()
+        
+    if base_game.genres:
+        if isinstance(base_game.genres, list):
+            base_genres = Counter({genre.strip(): 1 for genre in base_game.genres})
+        else:
+            base_genres = Counter({genre.strip(): 1 for genre in base_game.genres.split(',')})
+    else:
+        base_genres = Counter()
     
     # Buscar juegos indie que no sean el juego base y cumplan con el precio máximo
     candidate_games = (
