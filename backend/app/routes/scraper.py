@@ -14,7 +14,7 @@ async def run_spider(background_tasks: BackgroundTasks):
     """
     def execute_spider():
         try:
-            # Cambia al directorio donde se encuentra el spider
+            # Cambia al directorio donde se encuentra el archivo scrapy.cfg
             project_dir = Path(__file__).parent.parent.parent
             os.chdir(project_dir)
             
@@ -43,9 +43,11 @@ async def execute_spider_sync():
     Ejecuta el spider de Steam de forma síncrona y devuelve el resultado
     """
     try:
-        # Cambia al directorio donde se encuentra el spider
+        # Cambia al directorio donde se encuentra el archivo scrapy.cfg
         project_dir = Path(__file__).parent.parent.parent
         os.chdir(project_dir)
+        
+        logger.info(f"Ejecutando spider desde: {os.getcwd()}")
         
         # Ejecuta el spider usando subprocess
         result = subprocess.run(
