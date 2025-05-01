@@ -4,9 +4,9 @@ services:
   postgres:
     image: postgres:14
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: hiddengem
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+      POSTGRES_DB: "${POSTGRES_DB:-hiddengem}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -20,10 +20,10 @@ services:
     depends_on:
       - postgres
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hiddengem
+      DATABASE_URL: "${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/hiddengem}"
       SECRET_KEY: "${SECRET_KEY:-please_change_me_in_production}"
       RAWG_API_KEY: "${RAWG_API_KEY}"
-      ENVIRONMENT: production
+      ENVIRONMENT: "${ENVIRONMENT:-production}"
     ports:
       - "8000:8000"
     restart: unless-stopped
