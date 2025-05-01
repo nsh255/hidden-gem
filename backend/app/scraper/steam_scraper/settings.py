@@ -10,10 +10,10 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 ROBOTSTXT_OBEY = True
 
 # Configuración para limitar el número de solicitudes concurrentes
-CONCURRENT_REQUESTS = 1
+CONCURRENT_REQUESTS = 4
 
 # Delay entre solicitudes para evitar ser bloqueado
-DOWNLOAD_DELAY = 2
+DOWNLOAD_DELAY = 1
 
 # Habilitación de pipelines
 ITEM_PIPELINES = {

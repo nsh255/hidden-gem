@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from app.routes import auth, games, scraper
+import logging
+logging.basicConfig(level=logging.INFO)
 
 # Crear instancia de FastAPI
 app = FastAPI(

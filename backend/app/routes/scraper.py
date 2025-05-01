@@ -27,6 +27,7 @@ async def run_spider(background_tasks: BackgroundTasks):
             
             if result.returncode != 0:
                 logger.error(f"Error al ejecutar el spider: {result.stderr}")
+                return {"success": False, "message": "Error al ejecutar el spider", "error": result.stderr}
             else:
                 logger.info("Spider ejecutado correctamente")
                 
