@@ -1,29 +1,32 @@
-version: "3.8"
-services:
-  backend:
-    build:
-      context: ./backend
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    volumes:
-      - ./backend:/app
-    depends_on:
-      - db  # Asegura que el backend espere a que la base de datos esté lista
+version: '3.8'
 
-  db:
-    image: postgres:13
-    container_name: postgres_hiddengem
-    restart: always
+services:
+  postgres:
+    image: postgres:14
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: hiddengem
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/hiddengem
+      SECRET_KEY: "${SECRET_KEY:-please_change_me_in_production}"
+      RAWG_API_KEY: "${RAWG_API_KEY}"
+      ENVIRONMENT: production
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
 
 volumes:
   postgres_data:

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from app.routes import auth, games, scraper
+from app.routes import auth, games, scraper, recommendations, rawg
 import logging
 logging.basicConfig(level=logging.INFO)
 
@@ -25,6 +25,8 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["Autenticación"])
 app.include_router(games.router, prefix="/api/games", tags=["Juegos"])
 app.include_router(scraper.router, prefix="/api/scraper", tags=["Scraper"])
+app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
+app.include_router(rawg.router, prefix="/api/rawg", tags=["RAWG API"])
 
 @app.get("/", tags=["Root"])
 async def root():

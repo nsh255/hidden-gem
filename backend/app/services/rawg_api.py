@@ -13,17 +13,16 @@ load_dotenv()
 # Obtener la clave API desde las variables de entorno
 RAWG_API_KEY = os.getenv("RAWG_API_KEY")
 if not RAWG_API_KEY:
-    logger.warning("RAWG_API_KEY no encontrada en .env, las solicitudes a la API de RAWG fallarán")
+    logger.warning("RAWG_API_KEY no encontrada en .env. Añade RAWG_API_KEY=tu_clave_api_aqui en tu archivo .env")
 
 # URL base para la API de RAWG
 RAWG_BASE_URL = "https://api.rawg.io/api"
 
-def search_games(max_price: float, genres: List[str] = None) -> List[Dict[str, Any]]:
+def search_games(genres: List[str] = None) -> List[Dict[str, Any]]:
     """
-    Busca juegos en la API de RAWG por precio máximo y géneros opcionales.
+    Busca juegos en la API de RAWG por géneros opcionales.
     
     Args:
-        max_price (float): Precio máximo de los juegos a buscar
         genres (List[str], opcional): Lista de géneros para filtrar los juegos
         
     Returns:
@@ -55,32 +54,22 @@ def search_games(max_price: float, genres: List[str] = None) -> List[Dict[str, A
         data = response.json()
         results = data.get("results", [])
         
-        # Filtrar juegos por precio máximo
-        # Nota: RAWG no filtra directamente por precio, así que tenemos que hacerlo nosotros
-        filtered_games = []
+        formatted_games = []
         
         for game in results:
-            # Intentar obtener información adicional del juego, incluyendo precio
+            # Intentar obtener información adicional del juego
             game_id = game.get("id")
             if game_id:
                 game_details = get_game_details(game_id)
                 
-                # Extraer el precio, si está disponible
-                price = extract_price(game_details)
-                
-                # Añadir precio al objeto del juego
-                game["price"] = price
-                
                 # Añadir descripción al objeto del juego
                 game["description"] = game_details.get("description_raw", "")
                 
-                # Filtrar por precio máximo
-                if price is None or price <= max_price:
-                    # Adaptar el formato para nuestra aplicación
-                    formatted_game = format_game_data(game)
-                    filtered_games.append(formatted_game)
+                # Adaptar el formato para nuestra aplicación
+                formatted_game = format_game_data(game)
+                formatted_games.append(formatted_game)
         
-        return filtered_games
+        return formatted_games
         
     except requests.RequestException as e:
         logger.error(f"Error al consultar la API de RAWG: {str(e)}")
@@ -106,55 +95,6 @@ def get_game_details(game_id: int) -> Dict[str, Any]:
         logger.error(f"Error al obtener detalles del juego {game_id}: {str(e)}")
         return {}
 
-def extract_price(game_details: Dict[str, Any]) -> Optional[float]:
-    """
-    Extrae el precio de los detalles del juego.
-    RAWG no proporciona precios directamente, así que estimamos basado en atributos.
-    
-    Args:
-        game_details (Dict[str, Any]): Detalles del juego
-        
-    Returns:
-        Optional[float]: Precio del juego, o None si no está disponible
-    """
-    # Intentar estimar un precio basado en calificación y otros atributos
-    try:
-        rating = game_details.get("rating", 0)
-        is_indie = any(g.get("slug") == "indie" for g in game_details.get("genres", []))
-        
-        # Los juegos indie tienden a tener precios más bajos
-        if is_indie:
-            if rating > 4.5:
-                return 19.99
-            elif rating > 4:
-                return 14.99
-            elif rating > 3:
-                return 9.99
-            else:
-                return 4.99
-        else:
-            if rating > 4.5:
-                return 59.99
-            elif rating > 4:
-                return 49.99
-            elif rating > 3:
-                return 39.99
-            else:
-                return 29.99
-                
-        # Verificar si el juego es gratuito
-        if game_details.get("playtime", 0) > 0 and game_details.get("added", 0) > 1000:
-            stores = game_details.get("stores", [])
-            for store in stores:
-                if store.get("store", {}).get("slug") == "steam":
-                    return 0.0  # Probablemente gratuito en Steam
-                    
-    except Exception as e:
-        logger.warning(f"No se pudo estimar el precio: {str(e)}")
-    
-    # Valor predeterminado
-    return 19.99
-
 def format_game_data(game: Dict[str, Any]) -> Dict[str, Any]:
     """
     Formatea los datos del juego en un formato compatible con nuestro modelo.
@@ -179,7 +119,6 @@ def format_game_data(game: Dict[str, Any]) -> Dict[str, Any]:
     
     return {
         "title": game.get("name", ""),
-        "price": game.get("price", 19.99),
         "genres": genres,
         "tags": tags,
         "url": game_url,

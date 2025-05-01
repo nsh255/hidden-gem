@@ -18,9 +18,8 @@ DOWNLOAD_DELAY = 1
 # Habilitación de pipelines
 ITEM_PIPELINES = {
     'app.scraper.steam_scraper.pipelines.SteamScraperPipeline': 300,
-    # Descomenta uno de los siguientes según necesites
-    # 'app.scraper.steam_scraper.pipelines.PostgreSQLPipeline': 400,
-    # 'app.scraper.steam_scraper.pipelines.JsonPipeline': 500,
+    'app.scraper.steam_scraper.pipelines.PostgreSQLPipeline': 400,
+    'app.scraper.steam_scraper.pipelines.JsonPipeline': 500,
 }
 
 # Configuración del throttling automático

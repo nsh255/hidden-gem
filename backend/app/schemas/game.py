@@ -26,6 +26,16 @@ class GameInDB(GameOut):
 class GameWithFavorites(GameOut):
     favorited_by: List['UserOut'] = []
 
+class GameSearch(BaseModel):
+    text: Optional[str] = None
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    genres: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    sort_by: Optional[str] = "name"  # Opciones: name, price_asc, price_desc, rating
+    skip: int = 0
+    limit: int = 50
+
 # Para evitar referencia circular
 from .user import UserOut
 GameWithFavorites.update_forward_refs()
