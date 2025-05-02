@@ -27,7 +27,24 @@ async def admin_get_all_games(
     """
     Obtiene todos los juegos sin autenticación (modo admin)
     """
-    games = db.query(Game).offset(skip).limit(limit).all()
+    db_games = db.query(Game).offset(skip).limit(limit).all()
+    
+    # Explicitly convert ORM models to Pydantic models
+    games = []
+    for game in db_games:
+        game_data = {
+            "id": game.id,
+            "title": game.title,
+            "price": game.price,
+            "genres": game.genres,  # Ensure this is a list
+            "tags": game.tags,      # Ensure this is a list
+            "url": game.url,
+            "description": game.description,
+            "is_indie": game.is_indie,
+            "source": game.source
+        }
+        games.append(GameOut(**game_data))
+    
     return games
 
 @router.get("/games/{game_id}", response_model=GameOut)

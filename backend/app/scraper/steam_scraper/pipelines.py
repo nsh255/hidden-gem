@@ -40,6 +40,8 @@ class PostgreSQLPipeline:
     
     def close_spider(self, spider):
         try:
+            self.session.commit()
+            logger.info(f"Commit final realizado para los últimos {self.items_processed % 100} juegos")
             # Eliminar juegos con contenido sexual
             games_with_sexual_content = self.session.query(Game).filter(
                 func.array_to_string(Game.tags, ',').ilike('%Contenido sexual%')
