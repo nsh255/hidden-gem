@@ -9,11 +9,12 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 # No respetar robots.txt para obtener más datos
 ROBOTSTXT_OBEY = False
 
-# Reducir solicitudes concurrentes para evitar bloqueos
-CONCURRENT_REQUESTS = 1
+# Aumentamos ligeramente las solicitudes concurrentes para acelerar el scraper
+CONCURRENT_REQUESTS = 3  # Aumentado de 2 a 3
 
-# Delay entre solicitudes mayor (3-8 segundos)
-DOWNLOAD_DELAY = 5
+# Reducimos el delay entre solicitudes para acelerar el scraping, pero manteniéndolo
+# en un nivel razonable para evitar bloqueos
+DOWNLOAD_DELAY = 2  # Reducido de 3 a 2
 RANDOMIZE_DOWNLOAD_DELAY = True
 
 # Sin límite de profundidad para que explore más páginas
@@ -29,11 +30,11 @@ ITEM_PIPELINES = {
     'app.scraper.steam_scraper.pipelines.JsonPipeline': 500,
 }
 
-# Configuración del throttling automático
+# Configuración del throttling automático ajustada
 AUTOTHROTTLE_ENABLED = True
-AUTOTHROTTLE_START_DELAY = 5
-AUTOTHROTTLE_MAX_DELAY = 60
-AUTOTHROTTLE_TARGET_CONCURRENCY = 0.5  # Reducido para ser más amigable
+AUTOTHROTTLE_START_DELAY = 3
+AUTOTHROTTLE_MAX_DELAY = 30
+AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0  # Aumentado ligeramente
 AUTOTHROTTLE_DEBUG = True
 
 # Habilitar cookies para mantener la sesión
@@ -58,7 +59,7 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Configuraciones para reintentos
 RETRY_ENABLED = True
-RETRY_TIMES = 5  # Aumentado de 3 a 5
+RETRY_TIMES = 5
 RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429, 403]
 
 # Nivel de logging para más información
@@ -66,5 +67,5 @@ LOG_LEVEL = 'INFO'
 
 # Almacenar en cache respuestas HTTP para reducir solicitudes
 HTTPCACHE_ENABLED = True
-HTTPCACHE_EXPIRATION_SECS = 86400  # 24 horas
+HTTPCACHE_EXPIRATION_SECS = 172800  # 48 horas (aumentado de 24 a 48 horas)
 HTTPCACHE_DIR = 'httpcache'

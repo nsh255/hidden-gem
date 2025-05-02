@@ -91,6 +91,9 @@ class PostgreSQLPipeline:
                 'url': adapter.get('url'),
                 'description': adapter.get('description', ''),
                 'is_indie': True,  # Forzamos a True ya que solo guardamos juegos indie
+                'developers': adapter.get('developers', []),
+                'publishers': adapter.get('publishers', []),  # Añadimos publishers
+                'app_id': adapter.get('app_id'),
                 'source': adapter.get('source', 'steam')
             }
             

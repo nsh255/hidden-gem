@@ -1,5 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Text, Boolean, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Float, Text, Boolean, ARRAY
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -8,15 +7,20 @@ class Game(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    price = Column(Float)
-    genres = Column(Text)  # Géneros como texto separado por comas
-    tags = Column(Text)    # Tags como texto separado por comas
     url = Column(String, unique=True)
-    description = Column(Text, nullable=True)
+    app_id = Column(String, unique=True)
+    price = Column(Float)
+    description = Column(Text)
     is_indie = Column(Boolean, default=True)
-    source = Column(String)  # "rawg" o "steam"
+    source = Column(String, default="steam")
     
-    # Relación bidireccional con User
+    # Estas pueden ser columnas de tipo lista o JSON dependiendo de tu configuración
+    genres = Column(ARRAY(String), default=[])
+    tags = Column(ARRAY(String), default=[])
+    developers = Column(ARRAY(String), default=[])
+    publishers = Column(ARRAY(String), default=[])  # Nuevo campo añadido
+    
+    # Relaciones con otras tablas podrían ir aquí
     favorited_by = relationship(
         "User",
         secondary="user_favorite_games",

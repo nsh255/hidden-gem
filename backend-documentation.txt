@@ -63,9 +63,19 @@ El backend incluye un sistema de scraping para recopilar información de juegos 
 - Configurable para limitar el número de páginas a scrapear
 - Caché HTTP con expiración de 24 horas
 - Pipelines de procesamiento:
-  - SteamScraperPipeline: Limpieza y filtrado inicial de datos
-  - PostgreSQLPipeline: Almacenamiento en base de datos
-  - JsonPipeline: Opcionalmente, guardado en archivos JSON
+  - Limpieza y normalización de datos
+  - Almacenamiento en PostgreSQL
+  - Exportación opcional a JSON
+- Campos extraídos de cada juego:
+  - Título
+  - Precio
+  - Descripción
+  - URL
+  - App ID de Steam
+  - Géneros
+  - Etiquetas (tags)
+  - Desarrolladores (developers)
+  - Verificación de indie
 
 ### Comportamiento de guardado:
 - Verifica si el juego ya existe por app_id, URL o título

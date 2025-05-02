@@ -11,3 +11,5 @@ class GameItem(scrapy.Item):
     rating_text = scrapy.Field()
     is_indie = scrapy.Field()
     source = scrapy.Field()
+    developers = scrapy.Field()
+    publishers = scrapy.Field()  # Add this field to fix the KeyError

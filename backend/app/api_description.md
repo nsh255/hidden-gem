@@ -31,9 +31,26 @@ Para garantizar la calidad del servicio, aplicamos los siguientes límites:
 - 100 solicitudes por minuto para usuarios autenticados
 - 10 solicitudes por minuto para usuarios no autenticados
 
+## Modo Administrador
+
+Para propósitos de desarrollo y pruebas, hemos habilitado endpoints administrativos que no requieren autenticación:
+
+- `/api/admin/games`: Acceso a la base de datos de juegos sin autenticación
+- `/api/admin/scraper`: Control del scraper sin restricciones
+- `/api/admin/recommendations/random`: Sistema de recomendación aleatorio
+- `/api/admin/rawg`: Acceso a la integración con RAWG API sin autenticación
+
+Estos endpoints están destinados únicamente para pruebas internas y no deben usarse en entornos de producción.
+
 ## Notas sobre el scraper
 
 El endpoint de scraping está diseñado para actualizar nuestra base de datos y no debe ser llamado frecuentemente. Su uso está restringido principalmente a procesos internos.
+
+La información recopilada por el scraper incluye:
+- Datos básicos del juego (título, precio, descripción)
+- Categorías (géneros, tags)
+- Información de desarrollo (desarrolladores, publishers)
+- Identificadores (app_id, URLs)
 
 ## Integración con RAWG
 

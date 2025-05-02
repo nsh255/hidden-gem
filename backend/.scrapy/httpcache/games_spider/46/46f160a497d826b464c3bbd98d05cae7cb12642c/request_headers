@@ -1,0 +1,15 @@
+Referer: https://store.steampowered.com/search/results?query&start=850&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746204584
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Language: es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate, br
+Dnt: 1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Pragma: no-cache
+Cache-Control: no-cache
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+Cookie: steamCountry=ES%7C20a7873af52e37e0794e1953f1bb330f; sessionid=fa0504d95be050e5d05a65be

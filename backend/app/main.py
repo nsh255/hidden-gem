@@ -1,17 +1,36 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from app.routes import auth, games, scraper, recommendations, rawg
+from app.routes import auth, games, scraper, recommendations, rawg, admin
 import logging
 logging.basicConfig(level=logging.INFO)
 
 # Crear instancia de FastAPI con metadatos mejorados
 app = FastAPI(
-    title="HiddenGem API",
-    description="API para descubrir juegos indie poco conocidos y joyas escondidas en el mundo de los videojuegos.",
-    version="0.1.0",
-    redoc_url="/redoc",
-    docs_url="/docs",
+    title="Hidden Gem API",
+    description="""
+    API para el proyecto Hidden Gem, enfocada en la descubrimiento de juegos indie.
+    
+    ## Funcionalidades principales:
+    
+    * **Scraper de Steam**: Extracción de juegos indie de Steam
+    * **Búsqueda de juegos**: Filtrado por género, etiquetas, desarrolladores y más
+    * **Recomendaciones**: Sistema de recomendación basado en similitud
+    
+    ## Campos de juegos:
+    - title: Título del juego
+    - price: Precio (en moneda local)
+    - description: Breve descripción
+    - genres: Lista de géneros
+    - tags: Lista de etiquetas
+    - developers: Lista de desarrolladores
+    - url: Enlace a la tienda
+    - app_id: ID único de Steam
+    - is_indie: Indicador de juego indie
+    """,
+    version="1.0.0",
+    redoc_url="/api/redoc",
+    docs_url="/api/docs",
     openapi_url="/api/openapi.json",
     openapi_tags=[
         {
@@ -33,6 +52,10 @@ app = FastAPI(
         {
             "name": "RAWG API",
             "description": "Integración con la API de RAWG para obtener información detallada sobre videojuegos."
+        },
+        {
+            "name": "Admin",
+            "description": "Endpoints administrativos sin autenticación para gestión y pruebas."
         },
         {
             "name": "Root",
@@ -65,6 +88,9 @@ app.include_router(games.router, prefix="/api/games", tags=["Juegos"])
 app.include_router(scraper.router, prefix="/api/scraper", tags=["Scraper"])
 app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
 app.include_router(rawg.router, prefix="/api/rawg", tags=["RAWG API"])
+
+# Incluir rutas administrativas sin autenticación
+app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 
 @app.get("/", tags=["Root"])
 async def root():

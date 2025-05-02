@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 @router.post("/run-spider", status_code=202)
 async def run_spider(background_tasks: BackgroundTasks, 
-                    max_pages: int = Query(10, description="Número máximo de páginas a scrapear")):
+                    max_pages: int = Query(20, description="Número máximo de páginas a scrapear por categoría")):
     """
     Ejecuta el spider de Steam en segundo plano
     """
@@ -32,6 +32,7 @@ async def run_spider(background_tasks: BackgroundTasks,
                 "crawl", 
                 "games_spider",
                 "-s", f"CLOSESPIDER_PAGECOUNT={max_pages}",
+                "-a", "max_games=2000",  # Aumentado a 2000
                 "--logfile=spider_log.txt",
                 "-s", "LOG_LEVEL=DEBUG"
             ]
@@ -66,7 +67,8 @@ async def run_spider(background_tasks: BackgroundTasks,
     return {"message": "Spider iniciado en segundo plano"}
 
 @router.post("/run")
-async def execute_spider_sync(max_pages: int = Query(10, description="Número máximo de páginas a scrapear")):
+async def execute_spider_sync(max_pages: int = Query(100, description="Número máximo de páginas a scrapear"),  # Aumentado a 100
+                              max_games: int = Query(2000, description="Número máximo de juegos a extraer")):  # Aumentado a 2000
     try:
         start_time = time.time()
         logger.info(f"Ejecutando spider desde: {os.getcwd()}")
@@ -79,6 +81,7 @@ async def execute_spider_sync(max_pages: int = Query(10, description="Número m�
             "crawl", 
             "games_spider",
             "-s", f"CLOSESPIDER_PAGECOUNT={max_pages}",
+            "-a", f"max_games={max_games}",  # Añadimos el argumento de max_games
             "-s", "LOG_LEVEL=DEBUG"
         ]
         

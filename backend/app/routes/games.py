@@ -187,3 +187,22 @@ async def get_favorite_games(
     Obtiene los juegos favoritos del usuario autenticado
     """
     return current_user.favorite_games
+
+from typing import List, Optional
+from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Depends, Query
+
+class GameBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    price: Optional[float] = None
+    url: Optional[str] = None
+    app_id: Optional[str] = None
+    genres: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    developers: Optional[List[str]] = None  # Add developers field
+    is_indie: bool = True
+    source: str = "steam"
+
+    class Config:
+        orm_mode = True

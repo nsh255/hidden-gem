@@ -24,7 +24,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-def run_spider(max_games=5000):
+def run_spider(max_games=2000):  # Aumentado de 1000 a 2000
     """Ejecuta el spider de Steam enfocado en juegos indie"""
     logger.info(f"Iniciando scraper de juegos indie con límite de {max_games} juegos")
     logger.info(f"Fecha y hora de inicio: {datetime.now()}")
@@ -51,7 +51,7 @@ def run_spider(max_games=5000):
 def main():
     """Función principal"""
     parser = argparse.ArgumentParser(description='Ejecutar scraper de juegos indie de Steam')
-    parser.add_argument('--max-games', type=int, default=int(os.environ.get('MAX_GAMES', 5000)), 
+    parser.add_argument('--max-games', type=int, default=int(os.environ.get('MAX_GAMES', 2000)),  # Aumentado a 2000
                         help='Número máximo de juegos a scrapear')
     parser.add_argument('--now', action='store_true', default=True, 
                         help='Ejecutar inmediatamente (por defecto)')
@@ -59,7 +59,7 @@ def main():
     args = parser.parse_args()
     
     # Siempre ejecutamos inmediatamente ya que la programación se hará con Docker/cron
-    logger.info("Ejecutando scraper de juegos indie")
+    logger.info(f"Ejecutando scraper de juegos indie con límite de {args.max_games} juegos")
     run_spider(args.max_games)
 
 if __name__ == "__main__":

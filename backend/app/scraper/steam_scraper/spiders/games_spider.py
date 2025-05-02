@@ -12,26 +12,52 @@ class GamesSpider(scrapy.Spider):
     name = "games_spider"
     allowed_domains = ["store.steampowered.com"]
     
-    # Solo nos enfocamos en juegos indie
+    # Ampliamos las categorías de inicio para incluir más subgéneros y nichos de indie
     start_urls = [
         "https://store.steampowered.com/tags/en/Indie/",
-        # Incluimos subgéneros populares de indie para ampliar cobertura
         "https://store.steampowered.com/tags/en/Indie%20Adventure/",
         "https://store.steampowered.com/tags/en/Indie%20Puzzle/",
-        "https://store.steampowered.com/tags/en/Indie%20Platformer/"
+        "https://store.steampowered.com/tags/en/Indie%20Platformer/",
+        # Añadimos más categorías para aumentar la cobertura
+        "https://store.steampowered.com/tags/en/2D/",
+        "https://store.steampowered.com/tags/en/Pixel%20Graphics/",
+        "https://store.steampowered.com/tags/en/Roguelike/",
+        "https://store.steampowered.com/tags/en/Visual%20Novel/",
+        "https://store.steampowered.com/tags/en/Casual/",
+        "https://store.steampowered.com/tags/en/Game%20Development/",
+        # Nuevas categorías para obtener más juegos
+        "https://store.steampowered.com/tags/en/Action%20Indie/",
+        "https://store.steampowered.com/tags/en/Metroidvania/",
+        "https://store.steampowered.com/tags/en/Bullet%20Hell/",
+        "https://store.steampowered.com/tags/en/Singleplayer/",
+        "https://store.steampowered.com/tags/en/Simulation/",
+        "https://store.steampowered.com/tags/en/Early%20Access/",
     ]
     
     # Número máximo de intentos para las solicitudes fallidas
     max_retry_times = 5
     
     # Aumentamos el número máximo de páginas a recorrer por categoría
-    max_pages = 100  # Más páginas para categoría indie
+    max_pages = 400  # Aumentado de 200 a 400 para obtener más juegos
     
     def __init__(self, *args, **kwargs):
         super(GamesSpider, self).__init__(*args, **kwargs)
         self.games_count = 0
-        self.max_games = kwargs.get('max_games', 20000)  # Aumentado el límite predeterminado
+        # Convertimos explícitamente el valor a entero y aumentamos el valor predeterminado
+        self.max_games = int(kwargs.get('max_games', 2000))  # Aumentado de 500 a 2000
         self.logger.info(f"Configurado para scrapear hasta {self.max_games} juegos indie")
+        # Inicializamos conjunto para evitar duplicados
+        self.processed_urls = set()
+        
+        # Lista de grandes editores que NO son indies
+        self.major_publishers = [
+            'electronic arts', 'ea', 'ubisoft', 'activision', 'blizzard', 'activision blizzard',
+            'take-two', '2k games', 'bethesda', 'microsoft', 'xbox game studios', 
+            'sony', 'playstation studios', 'nintendo', 'square enix', 'bandai namco',
+            'capcom', 'sega', 'konami', 'paradox interactive', 'devolver digital',
+            'thq nordic', 'warner bros', 'wb games', 'focus home interactive', 'focus entertainment',
+            'deep silver', 'epic games', 'riot games', 'valve', '505 games'
+        ]
     
     def start_requests(self):
         self.logger.info("Iniciando spider de Steam para juegos Indie")
@@ -95,6 +121,18 @@ class GamesSpider(scrapy.Spider):
             'Indie Adventure': '492,21',
             'Indie Puzzle': '492,1664',
             'Indie Platformer': '492,1625',
+            '2D': '3871',
+            'Pixel Graphics': '3859',
+            'Roguelike': '1716',
+            'Visual Novel': '3798',
+            'Casual': '597',
+            'Game Development': '1702',
+            'Action Indie': '492,19',
+            'Metroidvania': '1628',
+            'Bullet Hell': '4885',
+            'Singleplayer': '4182',
+            'Simulation': '599',
+            'Early Access': '493',
             'Unknown': '492'  # Por defecto indie
         }
         return tag_mapping.get(category, '492')
@@ -136,6 +174,12 @@ class GamesSpider(scrapy.Spider):
     def parse_game(self, response):
         category = response.meta.get('category', 'Unknown')
         is_from_indie_category = response.meta.get('indie', False)
+        
+        # Evitamos procesar URLs duplicadas
+        if response.url in self.processed_urls:
+            self.logger.debug(f"URL ya procesada, omitiendo: {response.url}")
+            return
+        self.processed_urls.add(response.url)
         
         # Ignora páginas de verificación de edad
         if "agecheck" in response.url:
@@ -190,6 +234,14 @@ class GamesSpider(scrapy.Spider):
             self.logger.debug(f"No se encontró precio para {game_item['name']}")
             game_item['price'] = None
         
+        # Extraer desarrollador y editor para verificar si es indie
+        developers = response.css('div.dev_row:contains("Developer:") a::text, div.details_block a[href*="developer"]::text').getall()
+        publishers = response.css('div.dev_row:contains("Publisher:") a::text, div.details_block a[href*="publisher"]::text').getall()
+        
+        # Guardar esta información en el item
+        game_item['developers'] = [dev.strip() for dev in developers] if developers else []
+        game_item['publishers'] = [pub.strip() for pub in publishers] if publishers else []
+        
         # Extrae la descripción
         description = response.css('div.game_description_snippet::text').get() or ""
         game_item['description'] = description.strip()
@@ -210,35 +262,78 @@ class GamesSpider(scrapy.Spider):
             self.logger.debug(f"No se encontraron etiquetas para {game_item['name']}")
             game_item['tags'] = []
         
-        # Determinar si el juego es indie basándonos en múltiples criterios
+        # CRITERIOS MEJORADOS PARA IDENTIFICAR JUEGOS INDIE
+        
+        # 1. Verificar si proviene de una categoría explícitamente indie
+        from_indie_category = is_from_indie_category or category == 'Indie' or 'Indie' in category
+        
+        # 2. Verificar etiquetas y géneros
+        has_indie_tag = 'Indie' in game_item.get('tags', [])
+        has_indie_genre = 'Indie' in game_item.get('genres', [])
+        
+        # 3. Verificar keywords en tags - Ampliamos esta lista para ser más inclusivos
+        indie_keywords = ['indie', 'solo developer', 'small team', 'pixel', 'retro', 'roguelike', 
+                          'handcrafted', 'experimental', 'artistic', 'minimalist', 'procedural',
+                          'game jam', 'crowdfunded', 'kickstarter', 'early access', 'development',
+                          'low poly', 'voxel', 'unique', 'stylized', 'atmospheric', 'casual', 
+                          'hand-drawn', '2d', 'metroidvania', 'roguelite', 'single developer']
+        
+        has_indie_keywords = any(indie_keyword in str(tag).lower() for tag in game_item.get('tags', []) 
+                               for indie_keyword in indie_keywords)
+        
+        # 4. Verificar que NO sea de grandes editores
+        is_from_major_publisher = False
+        for publisher in game_item.get('publishers', []):
+            if publisher.lower() in self.major_publishers:
+                is_from_major_publisher = True
+                break
+        
+        for developer in game_item.get('developers', []):
+            if developer.lower() in self.major_publishers:
+                is_from_major_publisher = True
+                break
+        
+        # Evaluación final: un juego es indie si cumple al menos con algunos criterios y no es de un gran editor
+        # Hacemos la evaluación un poco más inclusiva
         is_indie = (
-            is_from_indie_category or  # Si viene de categoría indie
-            'Indie' in game_item['tags'] or  # Si tiene tag "Indie"
-            'Indie' in game_item['genres'] or  # Si tiene género "Indie"
-            any(indie_keyword in str(tag).lower() for tag in game_item['tags'] 
-                for indie_keyword in ['indie', 'solo developer', 'small team'])  # Palabras clave
+            # Al menos uno de estos criterios debe cumplirse
+            (from_indie_category or has_indie_tag or has_indie_genre or has_indie_keywords) and
+            # Y no debe ser de un gran editor
+            not is_from_major_publisher
         )
         
-        # Si no es indie, no continuamos procesando este juego
-        if not is_indie:
-            self.logger.info(f"Saltando juego no indie: {game_item['name']}")
+        # Registramos en el log el motivo de la evaluación
+        if is_indie:
+            self.logger.info(f"Juego: '{game_item['name']}' clasificado como INDIE porque: " +
+                            (f"Categoría indie: {from_indie_category}, " if from_indie_category else "") +
+                            (f"Tag indie: {has_indie_tag}, " if has_indie_tag else "") +
+                            (f"Género indie: {has_indie_genre}, " if has_indie_genre else "") +
+                            (f"Keywords indie: {has_indie_keywords}" if has_indie_keywords else ""))
+        else:
+            reasons = []
+            if is_from_major_publisher:
+                publishers_found = game_item.get('publishers', [])
+                developers_found = game_item.get('developers', [])
+                reasons.append(f"Es de un gran publisher/developer: Publishers={publishers_found}, Developers={developers_found}")
+            if not (from_indie_category or has_indie_tag or has_indie_genre or has_indie_keywords):
+                reasons.append("No tiene suficientes indicadores de ser indie")
+            
+            self.logger.debug(f"Juego: '{game_item['name']}' NO clasificado como indie. Motivo: {', '.join(reasons)}")
+        
+        game_item['is_indie'] = is_indie
+        
+        # Si alcanzamos el límite de juegos, nos detenemos
+        if self.games_count >= self.max_games:
+            self.logger.info(f"Alcanzado el límite de {self.max_games} juegos. Deteniendo.")
             return
         
-        # Marcar explícitamente como indie
-        game_item['is_indie'] = True
-        
-        # Extrae valoraciones
-        review_summary = response.css('span.game_review_summary::text').get()
-        game_item['rating_text'] = review_summary.strip() if review_summary else None
-        
-        # Marcar origen
-        game_item['source'] = 'steam'
-        
-        self.logger.info(f"Datos extraídos exitosamente para juego indie: {game_item['name']}")
-        self.games_count += 1
-        self.logger.info(f"Juegos indie procesados: {self.games_count}/{self.max_games}")
-        
-        yield game_item
+        # Solo si consideramos que es un juego indie lo contamos
+        if is_indie:
+            self.games_count += 1
+            self.logger.info(f"Juegos indie procesados: {self.games_count}/{self.max_games}")
+            yield game_item
+        else:
+            self.logger.debug(f"Juego no considerado indie, omitiendo: {game_item['name']}")
     
     def errback_httpbin(self, failure):
         # Log de diferentes tipos de errores HTTP

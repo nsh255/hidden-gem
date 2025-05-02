@@ -34,6 +34,7 @@ def get_game_recommendations(user_id: int, db: Session, limit: int = 10) -> List
     # Extraer tags y géneros de los juegos favoritos
     favorite_tags = _extract_tags(user.favorite_games)
     favorite_genres = _extract_genres(user.favorite_games)
+    favorite_publishers = _extract_publishers(user.favorite_games)
     
     # Obtener IDs de juegos ya favoritos para excluirlos
     favorite_ids = {game.id for game in user.favorite_games}
@@ -53,7 +54,8 @@ def get_game_recommendations(user_id: int, db: Session, limit: int = 10) -> List
         score = _calculate_similarity_score(
             game, 
             favorite_tags, 
-            favorite_genres
+            favorite_genres,
+            favorite_publishers
         )
         scored_games.append((game, score))
     
@@ -111,7 +113,32 @@ def _extract_genres(games: List[Game]) -> Dict[str, int]:
     
     return genre_counter
 
-def _calculate_similarity_score(game: Game, favorite_tags: Dict[str, int], favorite_genres: Dict[str, int]) -> float:
+def _extract_publishers(games: List[Game]) -> Dict[str, int]:
+    """
+    Extrae y cuenta las frecuencias de publishers de una lista de juegos.
+    
+    Args:
+        games (List[Game]): Lista de juegos
+        
+    Returns:
+        Dict[str, int]: Diccionario de publishers y sus frecuencias
+    """
+    publisher_counter = Counter()
+    
+    for game in games:
+        if game.publishers:
+            # Manejo flexible del formato de publishers (lista o string)
+            if isinstance(game.publishers, list):
+                game_publishers = [publisher.strip() for publisher in game.publishers]
+            else:
+                game_publishers = [publisher.strip() for publisher in game.publishers.split(',')]
+            publisher_counter.update(game_publishers)
+    
+    return publisher_counter
+
+def _calculate_similarity_score(game: Game, favorite_tags: Dict[str, int], 
+                              favorite_genres: Dict[str, int], 
+                              favorite_publishers: Dict[str, int]) -> float:
     """
     Calcula la puntuación de similitud de un juego con respecto a los favoritos.
     
@@ -119,6 +146,7 @@ def _calculate_similarity_score(game: Game, favorite_tags: Dict[str, int], favor
         game (Game): Juego a comparar
         favorite_tags (Dict[str, int]): Contador de tags favoritas
         favorite_genres (Dict[str, int]): Contador de géneros favoritos
+        favorite_publishers (Dict[str, int]): Contador de publishers favoritos
         
     Returns:
         float: Puntuación de similitud
@@ -147,12 +175,25 @@ def _calculate_similarity_score(game: Game, favorite_tags: Dict[str, int], favor
             # Sumar la frecuencia de cada género coincidente (con más peso)
             score += favorite_genres.get(genre, 0) * 2.5
     
-    # Normalizar la puntuación por el número de tags y géneros
+    # Procesar publishers del juego (con peso intermedio)
+    if game.publishers:
+        if isinstance(game.publishers, list):
+            game_publishers = [publisher.strip() for publisher in game.publishers]
+        else:
+            game_publishers = [publisher.strip() for publisher in game.publishers.split(',')]
+            
+        for publisher in game_publishers:
+            # Sumar la frecuencia de cada publisher coincidente (con peso intermedio)
+            score += favorite_publishers.get(publisher, 0) * 1.5
+    
+    # Normalizar la puntuación por el número de tags, géneros y publishers
     total_elements = 0
     if game.tags:
         total_elements += len(game.tags if isinstance(game.tags, list) else game.tags.split(','))
     if game.genres:
         total_elements += len(game.genres if isinstance(game.genres, list) else game.genres.split(','))
+    if game.publishers:
+        total_elements += len(game.publishers if isinstance(game.publishers, list) else game.publishers.split(','))
     
     if total_elements > 0:
         score = score / total_elements
@@ -199,6 +240,14 @@ def get_recommendations_by_game(game_id: int, user_id: int, db: Session, limit: 
     else:
         base_genres = Counter()
     
+    if base_game.publishers:
+        if isinstance(base_game.publishers, list):
+            base_publishers = Counter({publisher.strip(): 1 for publisher in base_game.publishers})
+        else:
+            base_publishers = Counter({publisher.strip(): 1 for publisher in base_game.publishers.split(',')})
+    else:
+        base_publishers = Counter()
+    
     # Buscar juegos indie que no sean el juego base y cumplan con el precio máximo
     candidate_games = (
         db.query(Game)
@@ -211,7 +260,7 @@ def get_recommendations_by_game(game_id: int, user_id: int, db: Session, limit: 
     # Calcular puntuación para cada juego candidato
     scored_games = []
     for game in candidate_games:
-        score = _calculate_similarity_score(game, base_tags, base_genres)
+        score = _calculate_similarity_score(game, base_tags, base_genres, base_publishers)
         scored_games.append((game, score))
     
     # Ordenar juegos por puntuación descendente
