@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  indie-games-scraper:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.scraper
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/hidden_gem
+      - MAX_GAMES=10000
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - db
+    # Para ejecutar programáticamente, puedes usar esto con cron en la máquina host
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=hidden_gem
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

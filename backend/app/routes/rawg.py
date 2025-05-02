@@ -44,7 +44,38 @@ async def get_rawg_game_details(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Obtiene detalles completos de un juego específico desde RAWG
+    Obtiene detalles completos de un juego específico desde RAWG.
+    
+    Este endpoint realiza una consulta a la API de RAWG para obtener información
+    detallada sobre un juego específico usando su ID único.
+    
+    Parameters:
+    - **game_id**: Identificador único del juego en la base de datos de RAWG
+    
+    Returns:
+    - Objeto con todos los detalles del juego incluyendo título, descripción,
+      imágenes, géneros, plataformas, puntuaciones, etc.
+    
+    Raises:
+    - HTTPException 404: Si el juego no se encuentra
+    - HTTPException 500: Si ocurre un error al comunicarse con la API de RAWG
+    
+    Example response:
+    ```json
+    {
+      "id": 3498,
+      "name": "Grand Theft Auto V",
+      "description": "Una descripción detallada del juego...",
+      "metacritic": 92,
+      "released": "2013-09-17",
+      "background_image": "https://media.rawg.io/media/games/456/456dea5e1c7e3cd07060c14e96612001.jpg",
+      "genres": [{"id": 4, "name": "Action"}, {"id": 3, "name": "Adventure"}],
+      "platforms": [{"platform": {"id": 4, "name": "PC"}}],
+      "ratings": [...],
+      "developers": [...],
+      "publishers": [...]
+    }
+    ```
     """
     try:
         game = get_game_details(game_id)

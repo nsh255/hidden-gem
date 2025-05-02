@@ -1,0 +1,511 @@
+STDOUT:
+
+
+STDERR:
+2025-05-02 13:50:12 [scrapy.utils.log] INFO: Scrapy 2.12.0 started (bot: steam_scraper)
+2025-05-02 13:50:12 [scrapy.utils.log] INFO: Versions: lxml 5.4.0.0, libxml2 2.13.8, cssselect 1.3.0, parsel 1.10.0, w3lib 2.3.1, Twisted 24.11.0, Python 3.9.22 (main, Apr 28 2025, 22:07:13) - [GCC 12.2.0], pyOpenSSL 25.0.0 (OpenSSL 3.4.1 11 Feb 2025), cryptography 44.0.2, Platform Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.36
+2025-05-02 13:50:12 [games_spider] INFO: Configurado para scrapear hasta 20000 juegos indie
+2025-05-02 13:50:12 [scrapy.addons] INFO: Enabled addons:
+[]
+2025-05-02 13:50:12 [scrapy.utils.log] DEBUG: Using reactor: twisted.internet.epollreactor.EPollReactor
+2025-05-02 13:50:12 [scrapy.extensions.telnet] INFO: Telnet Password: e847987c5e6398f3
+2025-05-02 13:50:12 [scrapy.middleware] INFO: Enabled extensions:
+['scrapy.extensions.corestats.CoreStats',
+ 'scrapy.extensions.telnet.TelnetConsole',
+ 'scrapy.extensions.memusage.MemoryUsage',
+ 'scrapy.extensions.closespider.CloseSpider',
+ 'scrapy.extensions.logstats.LogStats',
+ 'scrapy.extensions.throttle.AutoThrottle']
+2025-05-02 13:50:12 [scrapy.crawler] INFO: Overridden settings:
+{'AUTOTHROTTLE_DEBUG': True,
+ 'AUTOTHROTTLE_ENABLED': True,
+ 'AUTOTHROTTLE_TARGET_CONCURRENCY': 0.5,
+ 'BOT_NAME': 'steam_scraper',
+ 'CLOSESPIDER_PAGECOUNT': '10',
+ 'CONCURRENT_REQUESTS': 1,
+ 'DOWNLOAD_DELAY': 5,
+ 'DOWNLOAD_TIMEOUT': 60,
+ 'HTTPCACHE_ENABLED': True,
+ 'HTTPCACHE_EXPIRATION_SECS': 86400,
+ 'NEWSPIDER_MODULE': 'app.scraper.steam_scraper.spiders',
+ 'RETRY_HTTP_CODES': [500, 502, 503, 504, 522, 524, 408, 429, 403],
+ 'RETRY_TIMES': 5,
+ 'SPIDER_MODULES': ['app.scraper.steam_scraper.spiders'],
+ 'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+               '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+2025-05-02 13:50:12 [scrapy.middleware] INFO: Enabled downloader middlewares:
+['scrapy.downloadermiddlewares.offsite.OffsiteMiddleware',
+ 'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware',
+ 'scrapy.downloadermiddlewares.downloadtimeout.DownloadTimeoutMiddleware',
+ 'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware',
+ 'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware',
+ 'scrapy.downloadermiddlewares.retry.RetryMiddleware',
+ 'scrapy.downloadermiddlewares.redirect.MetaRefreshMiddleware',
+ 'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware',
+ 'scrapy.downloadermiddlewares.redirect.RedirectMiddleware',
+ 'scrapy.downloadermiddlewares.cookies.CookiesMiddleware',
+ 'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware',
+ 'scrapy.downloadermiddlewares.stats.DownloaderStats',
+ 'scrapy.downloadermiddlewares.httpcache.HttpCacheMiddleware']
+2025-05-02 13:50:12 [scrapy.middleware] INFO: Enabled spider middlewares:
+['scrapy.spidermiddlewares.httperror.HttpErrorMiddleware',
+ 'scrapy.spidermiddlewares.referer.RefererMiddleware',
+ 'scrapy.spidermiddlewares.urllength.UrlLengthMiddleware',
+ 'scrapy.spidermiddlewares.depth.DepthMiddleware']
+2025-05-02 13:50:12 [scrapy.middleware] INFO: Enabled item pipelines:
+['app.scraper.steam_scraper.pipelines.SteamScraperPipeline',
+ 'app.scraper.steam_scraper.pipelines.PostgreSQLPipeline',
+ 'app.scraper.steam_scraper.pipelines.JsonPipeline']
+2025-05-02 13:50:12 [scrapy.core.engine] INFO: Spider opened
+2025-05-02 13:50:12 [app.scraper.steam_scraper.pipelines] INFO: Pipeline PostgreSQL inicializada
+2025-05-02 13:50:12 [games_spider] INFO: Guardando resultados en: /app/scraped_games.json
+2025-05-02 13:50:12 [scrapy.extensions.logstats] INFO: Crawled 0 pages (at 0 pages/min), scraped 0 items (at 0 items/min)
+2025-05-02 13:50:12 [scrapy.extensions.httpcache] DEBUG: Using filesystem cache storage in /app/.scrapy/httpcache
+2025-05-02 13:50:12 [scrapy.extensions.telnet] INFO: Telnet console listening on 127.0.0.1:6023
+2025-05-02 13:50:12 [games_spider] INFO: Iniciando spider de Steam para juegos Indie
+2025-05-02 13:50:12 [games_spider] INFO: Procesando categoría: Indie
+2025-05-02 13:50:13 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5000 ms (+0) | latency:  932 ms | size: 89477 bytes
+2025-05-02 13:50:13 [urllib3.connectionpool] DEBUG: Starting new HTTPS connection (1): publicsuffix.org:443
+2025-05-02 13:50:14 [urllib3.connectionpool] DEBUG: https://publicsuffix.org:443 "GET /list/public_suffix_list.dat HTTP/1.1" 200 87116
+2025-05-02 13:50:14 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/tags/en/Indie/> (referer: https://store.steampowered.com/)
+2025-05-02 13:50:14 [games_spider] INFO: Procesando categoría: Indie%20Adventure
+2025-05-02 13:50:14 [games_spider] INFO: Procesando página principal de categoría Indie: https://store.steampowered.com/tags/en/Indie/
+2025-05-02 13:50:14 [games_spider] INFO: Encontrados 0 juegos en la página principal de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.52s antes de solicitar página 2 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.64s antes de solicitar página 3 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.54s antes de solicitar página 4 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.73s antes de solicitar página 5 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.02s antes de solicitar página 6 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.08s antes de solicitar página 7 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.57s antes de solicitar página 8 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.55s antes de solicitar página 9 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.28s antes de solicitar página 10 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.50s antes de solicitar página 11 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.96s antes de solicitar página 12 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.41s antes de solicitar página 13 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.06s antes de solicitar página 14 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.08s antes de solicitar página 15 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.53s antes de solicitar página 16 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.91s antes de solicitar página 17 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.69s antes de solicitar página 18 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.11s antes de solicitar página 19 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.28s antes de solicitar página 20 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.35s antes de solicitar página 21 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.64s antes de solicitar página 22 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.63s antes de solicitar página 23 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.47s antes de solicitar página 24 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.07s antes de solicitar página 25 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.19s antes de solicitar página 26 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.05s antes de solicitar página 27 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.43s antes de solicitar página 28 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.63s antes de solicitar página 29 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.09s antes de solicitar página 30 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.50s antes de solicitar página 31 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.08s antes de solicitar página 32 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.56s antes de solicitar página 33 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.83s antes de solicitar página 34 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.33s antes de solicitar página 35 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.99s antes de solicitar página 36 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.85s antes de solicitar página 37 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.88s antes de solicitar página 38 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.72s antes de solicitar página 39 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.98s antes de solicitar página 40 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.82s antes de solicitar página 41 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.50s antes de solicitar página 42 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.75s antes de solicitar página 43 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.46s antes de solicitar página 44 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.13s antes de solicitar página 45 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.91s antes de solicitar página 46 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.55s antes de solicitar página 47 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.71s antes de solicitar página 48 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.99s antes de solicitar página 49 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.20s antes de solicitar página 50 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.96s antes de solicitar página 51 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.56s antes de solicitar página 52 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.55s antes de solicitar página 53 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.51s antes de solicitar página 54 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.41s antes de solicitar página 55 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.52s antes de solicitar página 56 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.56s antes de solicitar página 57 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.67s antes de solicitar página 58 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.81s antes de solicitar página 59 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.35s antes de solicitar página 60 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.27s antes de solicitar página 61 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.68s antes de solicitar página 62 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.83s antes de solicitar página 63 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.53s antes de solicitar página 64 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.92s antes de solicitar página 65 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.18s antes de solicitar página 66 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.74s antes de solicitar página 67 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.22s antes de solicitar página 68 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.12s antes de solicitar página 69 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.90s antes de solicitar página 70 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.04s antes de solicitar página 71 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.31s antes de solicitar página 72 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.61s antes de solicitar página 73 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.47s antes de solicitar página 74 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.41s antes de solicitar página 75 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.57s antes de solicitar página 76 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.62s antes de solicitar página 77 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.80s antes de solicitar página 78 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.76s antes de solicitar página 79 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.27s antes de solicitar página 80 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.94s antes de solicitar página 81 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.32s antes de solicitar página 82 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.25s antes de solicitar página 83 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.00s antes de solicitar página 84 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.21s antes de solicitar página 85 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.09s antes de solicitar página 86 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.27s antes de solicitar página 87 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.70s antes de solicitar página 88 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.38s antes de solicitar página 89 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.34s antes de solicitar página 90 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.89s antes de solicitar página 91 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.19s antes de solicitar página 92 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.97s antes de solicitar página 93 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.69s antes de solicitar página 94 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.68s antes de solicitar página 95 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.80s antes de solicitar página 96 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.33s antes de solicitar página 97 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.44s antes de solicitar página 98 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 1.04s antes de solicitar página 99 de Indie
+2025-05-02 13:50:14 [games_spider] INFO: Esperando 2.41s antes de solicitar página 100 de Indie
+2025-05-02 13:50:20 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5000 ms (+0) | latency: 1251 ms | size: 29151 bytes
+2025-05-02 13:50:20 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/tags/en/Indie%20Adventure/> (referer: https://store.steampowered.com/)
+2025-05-02 13:50:20 [games_spider] INFO: Procesando página principal de categoría Indie%20Adventure: https://store.steampowered.com/tags/en/Indie%20Adventure/
+2025-05-02 13:50:20 [games_spider] INFO: Encontrados 0 juegos en la página principal de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.52s antes de solicitar página 2 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.60s antes de solicitar página 3 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.24s antes de solicitar página 4 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.96s antes de solicitar página 5 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.18s antes de solicitar página 6 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.49s antes de solicitar página 7 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.33s antes de solicitar página 8 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.13s antes de solicitar página 9 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 3.00s antes de solicitar página 10 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.25s antes de solicitar página 11 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.36s antes de solicitar página 12 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.41s antes de solicitar página 13 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.38s antes de solicitar página 14 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.77s antes de solicitar página 15 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.47s antes de solicitar página 16 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.02s antes de solicitar página 17 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.40s antes de solicitar página 18 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.52s antes de solicitar página 19 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.59s antes de solicitar página 20 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.18s antes de solicitar página 21 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.39s antes de solicitar página 22 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.35s antes de solicitar página 23 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.96s antes de solicitar página 24 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.92s antes de solicitar página 25 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.31s antes de solicitar página 26 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.44s antes de solicitar página 27 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.83s antes de solicitar página 28 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.59s antes de solicitar página 29 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.24s antes de solicitar página 30 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.48s antes de solicitar página 31 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.84s antes de solicitar página 32 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.62s antes de solicitar página 33 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.42s antes de solicitar página 34 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.50s antes de solicitar página 35 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.80s antes de solicitar página 36 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.49s antes de solicitar página 37 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.85s antes de solicitar página 38 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.59s antes de solicitar página 39 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.12s antes de solicitar página 40 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.02s antes de solicitar página 41 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.11s antes de solicitar página 42 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.37s antes de solicitar página 43 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.91s antes de solicitar página 44 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.87s antes de solicitar página 45 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.55s antes de solicitar página 46 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.56s antes de solicitar página 47 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.69s antes de solicitar página 48 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.78s antes de solicitar página 49 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.40s antes de solicitar página 50 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.58s antes de solicitar página 51 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.82s antes de solicitar página 52 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.46s antes de solicitar página 53 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.22s antes de solicitar página 54 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.61s antes de solicitar página 55 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.52s antes de solicitar página 56 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.37s antes de solicitar página 57 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.93s antes de solicitar página 58 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.11s antes de solicitar página 59 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.00s antes de solicitar página 60 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.69s antes de solicitar página 61 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.98s antes de solicitar página 62 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.14s antes de solicitar página 63 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.14s antes de solicitar página 64 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.27s antes de solicitar página 65 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.92s antes de solicitar página 66 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.22s antes de solicitar página 67 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.08s antes de solicitar página 68 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.04s antes de solicitar página 69 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.03s antes de solicitar página 70 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.84s antes de solicitar página 71 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.65s antes de solicitar página 72 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.04s antes de solicitar página 73 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.79s antes de solicitar página 74 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.63s antes de solicitar página 75 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.52s antes de solicitar página 76 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.24s antes de solicitar página 77 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.29s antes de solicitar página 78 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.12s antes de solicitar página 79 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.21s antes de solicitar página 80 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.86s antes de solicitar página 81 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.06s antes de solicitar página 82 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.63s antes de solicitar página 83 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.39s antes de solicitar página 84 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.57s antes de solicitar página 85 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.42s antes de solicitar página 86 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.77s antes de solicitar página 87 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.36s antes de solicitar página 88 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.31s antes de solicitar página 89 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.45s antes de solicitar página 90 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.27s antes de solicitar página 91 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.34s antes de solicitar página 92 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.53s antes de solicitar página 93 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.10s antes de solicitar página 94 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.95s antes de solicitar página 95 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.55s antes de solicitar página 96 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.54s antes de solicitar página 97 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.68s antes de solicitar página 98 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 1.19s antes de solicitar página 99 de Indie%20Adventure
+2025-05-02 13:50:20 [games_spider] INFO: Esperando 2.47s antes de solicitar página 100 de Indie%20Adventure
+2025-05-02 13:50:26 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5000 ms (+0) | latency:  547 ms | size:  9278 bytes
+2025-05-02 13:50:26 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193814> (referer: https://store.steampowered.com/tags/en/Indie/)
+2025-05-02 13:50:26 [games_spider] INFO: Procesando resultados JSON de categoría Indie: https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193814
+2025-05-02 13:50:26 [games_spider] INFO: Encontrados 50 juegos en resultados JSON de Indie
+2025-05-02 13:50:32 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5000 ms (+0) | latency: 1912 ms | size:  9538 bytes
+2025-05-02 13:50:32 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193820> (referer: https://store.steampowered.com/tags/en/Indie%20Adventure/)
+2025-05-02 13:50:33 [games_spider] INFO: Procesando resultados JSON de categoría Indie%20Adventure: https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193820
+2025-05-02 13:50:33 [games_spider] INFO: Encontrados 50 juegos en resultados JSON de Indie%20Adventure
+2025-05-02 13:50:33 [scrapy.dupefilters] DEBUG: Filtered duplicate request: <GET https://store.steampowered.com/app/1391530/Mud_and_Blood/?snr=1_7_7_240_150_100> - no more duplicates will be shown (see DUPEFILTER_DEBUG to show all duplicates)
+2025-05-02 13:50:37 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5000 ms (+0) | latency: 2429 ms | size: 32415 bytes
+2025-05-02 13:50:38 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/app/3288600/SKIBIDI_GYATROOMS/?snr=1_7_7_240_150_100> (referer: https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193814)
+2025-05-02 13:50:39 [games_spider] INFO: Procesando juego de categoría Indie: https://store.steampowered.com/app/3288600/SKIBIDI_GYATROOMS/?snr=1_7_7_240_150_100
+2025-05-02 13:50:39 [games_spider] INFO: Juego encontrado: SKIBIDI GYATROOMS
+2025-05-02 13:50:39 [games_spider] INFO: Datos extraídos exitosamente para juego indie: SKIBIDI GYATROOMS
+2025-05-02 13:50:39 [games_spider] INFO: Juegos indie procesados: 1/20000
+2025-05-02 13:50:39 [app.scraper.steam_scraper.pipelines] ERROR: Error de SQLAlchemy al guardar SKIBIDI GYATROOMS: When initializing mapper Mapper[Game(games)], expression 'user_favorite_games' failed to locate a name ("name 'user_favorite_games' is not defined"). If this is a class name, consider adding this relationship() to the <class 'app.models.game.Game'> class after both dependent classes have been defined.
+2025-05-02 13:50:39 [scrapy.core.scraper] DEBUG: Scraped from <200 https://store.steampowered.com/app/3288600/SKIBIDI_GYATROOMS/?snr=1_7_7_240_150_100>
+{'app_id': '3288600',
+ 'description': 'Skibidi Gyatrooms is a 1-4 player co-op horror game. You and '
+                'the homies just fell into the Backrooms, you must out-GYAT '
+                'the Skibidi Toilet with max rizz or get flushed. Expect '
+                'cursed levels, and brainrot that’ll keep you on edge.',
+ 'genres': ['Acción', 'Aventura', 'Casual'],
+ 'is_indie': True,
+ 'name': 'SKIBIDI GYATROOMS',
+ 'price': 1.99,
+ 'rating_text': 'Mayormente positivas',
+ 'source': 'steam',
+ 'tags': ['Terror',
+          'Multijugador',
+          'Cooperativos en línea',
+          'Terror psicológico',
+          'Cooperativos',
+          'Supervivencia / Terror',
+          'Primera persona',
+          'Acción',
+          'Exploración',
+          'Un jugador',
+          'Aventura',
+          'Casuales',
+          '3D',
+          'Acción y aventura',
+          'Indie',
+          'Memes',
+          'Exploración de mazmorras',
+          'Personalización de personajes',
+          'Extraterrestres',
+          'Habitación de escape'],
+ 'url': 'https://store.steampowered.com/app/3288600/SKIBIDI_GYATROOMS/?snr=1_7_7_240_150_100'}
+2025-05-02 13:50:46 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5579 ms (+579) | latency: 2789 ms | size: 34081 bytes
+2025-05-02 13:50:46 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/app/704030/Professional_Farmer_Cattle_and_Crops/?snr=1_7_7_240_150_100> (referer: https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193820)
+2025-05-02 13:50:49 [games_spider] INFO: Procesando juego de categoría Indie%20Adventure: https://store.steampowered.com/app/704030/Professional_Farmer_Cattle_and_Crops/?snr=1_7_7_240_150_100
+2025-05-02 13:50:49 [games_spider] INFO: Juego encontrado: Professional Farmer: Cattle and Crops
+2025-05-02 13:50:49 [games_spider] INFO: Datos extraídos exitosamente para juego indie: Professional Farmer: Cattle and Crops
+2025-05-02 13:50:49 [games_spider] INFO: Juegos indie procesados: 2/20000
+2025-05-02 13:50:49 [app.scraper.steam_scraper.pipelines] ERROR: Error de SQLAlchemy al guardar Professional Farmer: Cattle and Crops: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Game(games)]'. Original exception was: When initializing mapper Mapper[Game(games)], expression 'user_favorite_games' failed to locate a name ("name 'user_favorite_games' is not defined"). If this is a class name, consider adding this relationship() to the <class 'app.models.game.Game'> class after both dependent classes have been defined.
+2025-05-02 13:50:49 [scrapy.core.scraper] DEBUG: Scraped from <200 https://store.steampowered.com/app/704030/Professional_Farmer_Cattle_and_Crops/?snr=1_7_7_240_150_100>
+{'app_id': '704030',
+ 'description': 'Professional Farmer: Cattle and Crops te lleva al campo para '
+                'impresionarte con su profundidad y su atención al detalle. '
+                'Experimenta toda la emoción de la profesión del granjero, '
+                'trabaja en tus campos con máquinas originales o coordina '
+                'estas tareas con tus empleados.',
+ 'genres': ['Casual', 'Indie', 'Simuladores'],
+ 'is_indie': True,
+ 'name': 'Professional Farmer: Cattle and Crops',
+ 'price': 16.79,
+ 'rating_text': 'Variadas',
+ 'source': 'steam',
+ 'tags': ['Simulación',
+          'Simulador agrícola',
+          'Casuales',
+          'Agricultura',
+          'Indie',
+          'Multijugador',
+          'Simulador de automóviles',
+          'Acceso anticipado',
+          'Realistas',
+          'Un jugador',
+          'Conducción',
+          'Mundo abierto',
+          'Gestión'],
+ 'url': 'https://store.steampowered.com/app/704030/Professional_Farmer_Cattle_and_Crops/?snr=1_7_7_240_150_100'}
+2025-05-02 13:50:55 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5519 ms (-59) | latency: 2729 ms | size: 32690 bytes
+2025-05-02 13:50:55 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/app/401190/Dinosaur_Hunt/?snr=1_7_7_240_150_100> (referer: https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193814)
+2025-05-02 13:50:57 [games_spider] INFO: Procesando juego de categoría Indie: https://store.steampowered.com/app/401190/Dinosaur_Hunt/?snr=1_7_7_240_150_100
+2025-05-02 13:50:57 [games_spider] INFO: Juego encontrado: Dinosaur Hunt
+2025-05-02 13:50:57 [games_spider] INFO: Datos extraídos exitosamente para juego indie: Dinosaur Hunt
+2025-05-02 13:50:57 [games_spider] INFO: Juegos indie procesados: 3/20000
+2025-05-02 13:50:57 [app.scraper.steam_scraper.pipelines] ERROR: Error de SQLAlchemy al guardar Dinosaur Hunt: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Game(games)]'. Original exception was: When initializing mapper Mapper[Game(games)], expression 'user_favorite_games' failed to locate a name ("name 'user_favorite_games' is not defined"). If this is a class name, consider adding this relationship() to the <class 'app.models.game.Game'> class after both dependent classes have been defined.
+2025-05-02 13:50:57 [scrapy.core.scraper] DEBUG: Scraped from <200 https://store.steampowered.com/app/401190/Dinosaur_Hunt/?snr=1_7_7_240_150_100>
+{'app_id': '401190',
+ 'description': 'Dinosaur Hunt is an intense action shooter that will take you '
+                'on an epic journey of hunting the world’s most horrifying '
+                'animals!',
+ 'genres': ['Acción', 'Aventura', 'Indie', 'Simuladores'],
+ 'is_indie': True,
+ 'name': 'Dinosaur Hunt',
+ 'price': 0.49,
+ 'rating_text': 'Variadas',
+ 'source': 'steam',
+ 'tags': ['Dinosaurios',
+          'Acción',
+          'Indie',
+          'Aventura',
+          'Multijugador',
+          'Simulación',
+          'Disparos',
+          'Mundo abierto',
+          'FPS',
+          'Caza',
+          'Terror',
+          'Primera persona',
+          'Supervivencia',
+          'Memes',
+          'Zombis',
+          'Sangriento',
+          'Divertidos',
+          'Cooperativos',
+          'Desnudos'],
+ 'url': 'https://store.steampowered.com/app/401190/Dinosaur_Hunt/?snr=1_7_7_240_150_100'}
+2025-05-02 13:51:03 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5469 ms (-50) | latency: 2709 ms | size: 28661 bytes
+2025-05-02 13:51:03 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/app/974580/We_Happy_Few__Lightbearer/?snr=1_7_7_240_150_100> (referer: https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193814)
+2025-05-02 13:51:04 [games_spider] INFO: Procesando juego de categoría Indie: https://store.steampowered.com/app/974580/We_Happy_Few__Lightbearer/?snr=1_7_7_240_150_100
+2025-05-02 13:51:04 [games_spider] INFO: Juego encontrado: We Happy Few - Lightbearer
+2025-05-02 13:51:04 [games_spider] INFO: Datos extraídos exitosamente para juego indie: We Happy Few - Lightbearer
+2025-05-02 13:51:04 [games_spider] INFO: Juegos indie procesados: 4/20000
+2025-05-02 13:51:04 [app.scraper.steam_scraper.pipelines] ERROR: Error de SQLAlchemy al guardar We Happy Few - Lightbearer: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Game(games)]'. Original exception was: When initializing mapper Mapper[Game(games)], expression 'user_favorite_games' failed to locate a name ("name 'user_favorite_games' is not defined"). If this is a class name, consider adding this relationship() to the <class 'app.models.game.Game'> class after both dependent classes have been defined.
+2025-05-02 13:51:04 [scrapy.core.scraper] DEBUG: Scraped from <200 https://store.steampowered.com/app/974580/We_Happy_Few__Lightbearer/?snr=1_7_7_240_150_100>
+{'app_id': '974580',
+ 'description': '',
+ 'genres': ['Acción', 'Aventura', 'Indie'],
+ 'is_indie': True,
+ 'name': 'We Happy Few - Lightbearer',
+ 'price': 1.79,
+ 'rating_text': 'Muy positivas',
+ 'source': 'steam',
+ 'tags': ['Acción', 'Aventura', 'Indie', 'Violentos', 'Contenido sexual'],
+ 'url': 'https://store.steampowered.com/app/974580/We_Happy_Few__Lightbearer/?snr=1_7_7_240_150_100'}
+2025-05-02 13:51:10 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5079 ms (-389) | latency: 2344 ms | size: 34424 bytes
+2025-05-02 13:51:10 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/app/1508460/Annalynn/?snr=1_7_7_240_150_100> (referer: https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193814)
+2025-05-02 13:51:11 [games_spider] INFO: Procesando juego de categoría Indie: https://store.steampowered.com/app/1508460/Annalynn/?snr=1_7_7_240_150_100
+2025-05-02 13:51:11 [games_spider] INFO: Juego encontrado: Annalynn
+2025-05-02 13:51:11 [games_spider] INFO: Datos extraídos exitosamente para juego indie: Annalynn
+2025-05-02 13:51:11 [games_spider] INFO: Juegos indie procesados: 5/20000
+2025-05-02 13:51:11 [app.scraper.steam_scraper.pipelines] ERROR: Error de SQLAlchemy al guardar Annalynn: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Game(games)]'. Original exception was: When initializing mapper Mapper[Game(games)], expression 'user_favorite_games' failed to locate a name ("name 'user_favorite_games' is not defined"). If this is a class name, consider adding this relationship() to the <class 'app.models.game.Game'> class after both dependent classes have been defined.
+2025-05-02 13:51:11 [scrapy.core.scraper] DEBUG: Scraped from <200 https://store.steampowered.com/app/1508460/Annalynn/?snr=1_7_7_240_150_100>
+{'app_id': '1508460',
+ 'description': 'Annalynn is a 2D platformer made in the style of arcade games '
+                "from the early '80s. Collect the coins, grab the bonus foods, "
+                "and turn the tables with blinding rubies! Think you've got "
+                'what it takes to go for the high score?',
+ 'genres': ['Acción', 'Indie'],
+ 'is_indie': True,
+ 'name': 'Annalynn',
+ 'price': 3.99,
+ 'rating_text': 'Muy positivas',
+ 'source': 'steam',
+ 'tags': ['Acción',
+          'Arcade',
+          'Plataformas',
+          'Plataformas 2D',
+          'Pixelados',
+          '2D',
+          'Retro',
+          'Años 80',
+          'Indie',
+          'Puntuación de ataque',
+          'Un jugador',
+          'Lineales',
+          'Protagonista femenina'],
+ 'url': 'https://store.steampowered.com/app/1508460/Annalynn/?snr=1_7_7_240_150_100'}
+2025-05-02 13:51:13 [scrapy.extensions.logstats] INFO: Crawled 9 pages (at 9 pages/min), scraped 5 items (at 5 items/min)
+2025-05-02 13:51:15 [scrapy.extensions.throttle] INFO: slot: store.steampowered.com | conc: 1 | delay: 5000 ms (-79) | latency: 1475 ms | size: 32333 bytes
+2025-05-02 13:51:15 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://store.steampowered.com/app/993340/Virtual_Surfing/?snr=1_7_7_240_150_100> (referer: https://store.steampowered.com/search/results?query&start=4950&count=50&dynamic_data=&sort_by=_ASC&tags=492&snr=1_7_7_230_7&infinite=1&_=1746193814)
+2025-05-02 13:51:15 [scrapy.core.engine] INFO: Closing spider (closespider_pagecount)
+2025-05-02 13:51:16 [games_spider] INFO: Procesando juego de categoría Indie: https://store.steampowered.com/app/993340/Virtual_Surfing/?snr=1_7_7_240_150_100
+2025-05-02 13:51:16 [games_spider] INFO: Juego encontrado: Virtual Surfing
+2025-05-02 13:51:16 [games_spider] INFO: Datos extraídos exitosamente para juego indie: Virtual Surfing
+2025-05-02 13:51:16 [games_spider] INFO: Juegos indie procesados: 6/20000
+2025-05-02 13:51:16 [app.scraper.steam_scraper.pipelines] ERROR: Error de SQLAlchemy al guardar Virtual Surfing: One or more mappers failed to initialize - can't proceed with initialization of other mappers. Triggering mapper: 'Mapper[Game(games)]'. Original exception was: When initializing mapper Mapper[Game(games)], expression 'user_favorite_games' failed to locate a name ("name 'user_favorite_games' is not defined"). If this is a class name, consider adding this relationship() to the <class 'app.models.game.Game'> class after both dependent classes have been defined.
+2025-05-02 13:51:16 [scrapy.core.scraper] DEBUG: Scraped from <200 https://store.steampowered.com/app/993340/Virtual_Surfing/?snr=1_7_7_240_150_100>
+{'app_id': '993340',
+ 'description': 'Una simulación de surfear super autentico con gráficos '
+                'impresionantes. Las opciones de cámara muy libres le permiten '
+                'observar las olas rompeandas hermosas de a dentro y de a '
+                'fuera en todos los ángulos. Realizar paseos en tubo, aéreos y '
+                'mucho más. ¡Siente cada movimiento des agua en tu tabla y '
+                'vuélvete loco!',
+ 'genres': ['Acción',
+            'Aventura',
+            'Indie',
+            'Carreras',
+            'Simuladores',
+            'Deportes'],
+ 'is_indie': True,
+ 'name': 'Virtual Surfing',
+ 'price': 27.99,
+ 'rating_text': 'Variadas',
+ 'source': 'steam',
+ 'tags': ['Simulación', 'Deportes', 'Acción', 'Aventura', 'Indie', 'Carreras'],
+ 'url': 'https://store.steampowered.com/app/993340/Virtual_Surfing/?snr=1_7_7_240_150_100'}
+2025-05-02 13:51:17 [games_spider] INFO: Archivo JSON cerrado: /app/scraped_games.json
+2025-05-02 13:51:17 [app.scraper.steam_scraper.pipelines] INFO: Pipeline PostgreSQL finalizada. Estadísticas: Procesados: 6, Añadidos: 0, Actualizados: 0, Errores: 6
+2025-05-02 13:51:17 [scrapy.statscollectors] INFO: Dumping Scrapy stats:
+{'downloader/request_bytes': 8182,
+ 'downloader/request_count': 10,
+ 'downloader/request_method_count/GET': 10,
+ 'downloader/response_bytes': 350295,
+ 'downloader/response_count': 10,
+ 'downloader/response_status_count/200': 10,
+ 'dupefilter/filtered': 46,
+ 'elapsed_time_seconds': 64.641396,
+ 'finish_reason': 'closespider_pagecount',
+ 'finish_time': datetime.datetime(2025, 5, 2, 13, 51, 17, 585422, tzinfo=datetime.timezone.utc),
+ 'httpcache/firsthand': 10,
+ 'httpcache/miss': 10,
+ 'httpcache/store': 10,
+ 'httpcompression/response_bytes': 2199416,
+ 'httpcompression/response_count': 10,
+ 'item_scraped_count': 6,
+ 'items_per_minute': None,
+ 'log_count/DEBUG': 21,
+ 'log_count/ERROR': 6,
+ 'log_count/INFO': 258,
+ 'memusage/max': 129032192,
+ 'memusage/startup': 102043648,
+ 'request_depth_max': 2,
+ 'response_received_count': 10,
+ 'responses_per_minute': None,
+ 'scheduler/dequeued': 10,
+ 'scheduler/dequeued/memory': 10,
+ 'scheduler/enqueued': 254,
+ 'scheduler/enqueued/memory': 254,
+ 'start_time': datetime.datetime(2025, 5, 2, 13, 50, 12, 944026, tzinfo=datetime.timezone.utc)}
+2025-05-02 13:51:17 [scrapy.core.engine] INFO: Spider closed (closespider_pagecount)

@@ -1,15 +1,17 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 import subprocess
 from pathlib import Path
 import os
 import logging
 import sys
+import time
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @router.post("/run-spider", status_code=202)
-async def run_spider(background_tasks: BackgroundTasks):
+async def run_spider(background_tasks: BackgroundTasks, 
+                    max_pages: int = Query(10, description="Número máximo de páginas a scrapear")):
     """
     Ejecuta el spider de Steam en segundo plano
     """
@@ -20,16 +22,24 @@ async def run_spider(background_tasks: BackgroundTasks):
             os.chdir(project_dir)
             
             logger.info(f"Ejecutando spider desde: {os.getcwd()}")
+            logger.info(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'No definido')}")
             
             # Ejecuta el spider usando crawl en lugar de runspider
+            cmd = [
+                sys.executable, 
+                "-m", 
+                "scrapy", 
+                "crawl", 
+                "games_spider",
+                "-s", f"CLOSESPIDER_PAGECOUNT={max_pages}",
+                "--logfile=spider_log.txt",
+                "-s", "LOG_LEVEL=DEBUG"
+            ]
+            
+            logger.info(f"Ejecutando comando: {' '.join(cmd)}")
+            
             result = subprocess.run(
-                [
-                    sys.executable, 
-                    "-m", 
-                    "scrapy", 
-                    "crawl", 
-                    "games_spider",
-                ],
+                cmd,
                 capture_output=True,
                 text=True,
                 env={**os.environ, "PYTHONPATH": str(project_dir)}
@@ -37,9 +47,17 @@ async def run_spider(background_tasks: BackgroundTasks):
             
             if result.returncode != 0:
                 logger.error(f"Error al ejecutar el spider: {result.stderr}")
+                # Guardar salida para depuración
+                with open("spider_error.log", "w") as f:
+                    f.write(f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}")
+                logger.info("Error guardado en spider_error.log")
                 return {"success": False, "message": "Error al ejecutar el spider", "error": result.stderr}
             else:
                 logger.info("Spider ejecutado correctamente")
+                # Guardar salida para referencia
+                with open("spider_output.log", "w") as f:
+                    f.write(result.stdout)
+                logger.info("Salida guardada en spider_output.log")
                 
         except Exception as e:
             logger.exception(f"Error inesperado al ejecutar el spider: {str(e)}")
@@ -48,28 +66,37 @@ async def run_spider(background_tasks: BackgroundTasks):
     return {"message": "Spider iniciado en segundo plano"}
 
 @router.post("/run")
-async def execute_spider_sync():
+async def execute_spider_sync(max_pages: int = Query(10, description="Número máximo de páginas a scrapear")):
     try:
-        # En Docker, el directorio de trabajo ya debería ser /app
+        start_time = time.time()
         logger.info(f"Ejecutando spider desde: {os.getcwd()}")
         
         # Ejecuta el spider directamente desde el entorno Docker
+        cmd = [
+            "python", 
+            "-m", 
+            "scrapy", 
+            "crawl", 
+            "games_spider",
+            "-s", f"CLOSESPIDER_PAGECOUNT={max_pages}",
+            "-s", "LOG_LEVEL=DEBUG"
+        ]
+        
+        logger.info(f"Ejecutando comando: {' '.join(cmd)}")
+        
         result = subprocess.run(
-            [
-                "python", 
-                "-m", 
-                "scrapy", 
-                "crawl", 
-                "games_spider",
-            ],
+            cmd,
             capture_output=True,
             text=True,
             env={**os.environ}
         )
         
         # Mostrar detalles completos para depuración
-        logger.info(f"Salida del comando: {result.stdout}")
-        logger.info(f"Error del comando: {result.stderr}")
+        logger.info(f"Tiempo de ejecución: {time.time() - start_time:.2f} segundos")
+        
+        # Guardar logs completos independientemente del resultado
+        with open("spider_debug.log", "w") as f:
+            f.write(f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}")
         
         if result.returncode != 0:
             logger.error(f"Error al ejecutar el spider: {result.stderr}")
@@ -77,15 +104,17 @@ async def execute_spider_sync():
                 "success": False,
                 "message": "Error al ejecutar el spider",
                 "error": result.stderr,
-                "output": result.stdout,
-                "cwd": os.getcwd()
+                "output": result.stdout[:500] + "..." if len(result.stdout) > 500 else result.stdout,
+                "cwd": os.getcwd(),
+                "execution_time": f"{time.time() - start_time:.2f} segundos"
             }
         else:
             logger.info("Spider ejecutado correctamente")
             return {
                 "success": True,
                 "message": "Spider ejecutado correctamente",
-                "output": result.stdout
+                "output": result.stdout[:500] + "..." if len(result.stdout) > 500 else result.stdout,
+                "execution_time": f"{time.time() - start_time:.2f} segundos"
             }
     except Exception as e:
         error_msg = str(e)

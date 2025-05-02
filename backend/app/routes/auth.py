@@ -26,7 +26,29 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     """
-    Registra un nuevo usuario en el sistema
+    Registra un nuevo usuario en el sistema.
+    
+    Este endpoint permite la creación de nuevas cuentas de usuario. Se verifica que el email
+    no esté ya registrado antes de crear la cuenta.
+    
+    Parameters:
+    - **user**: Datos del usuario a registrar (email, contraseña, nickname, precio máximo)
+    
+    Returns:
+    - Usuario creado sin la contraseña
+    
+    Raises:
+    - HTTPException 400: Si el email ya está registrado
+    
+    Example:
+    ```json
+    {
+      "email": "usuario@ejemplo.com",
+      "password": "contraseña_segura",
+      "nickname": "GamerPro",
+      "max_price": 29.99
+    }
+    ```
     """
     # Verificar si el email ya existe
     db_user = db.query(User).filter(User.email == user.email).first()
