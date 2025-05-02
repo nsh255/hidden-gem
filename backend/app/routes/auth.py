@@ -6,6 +6,17 @@ from app.models.user import User
 from app.database import get_db
 from app.core.security import get_password_hash, verify_password, create_access_token
 from datetime import timedelta
+from jose import JWTError, jwt
+import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno
+load_dotenv()
+
+# Obtener clave secreta
+SECRET_KEY = os.getenv("SECRET_KEY", "please_change_me_in_production")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 router = APIRouter()
 
@@ -71,3 +82,29 @@ def login(form_data: UserLogin, db: Session = Depends(get_db)):
         "email": user.email,
         "nickname": user.nickname
     }
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """
+    Verifica el token JWT y devuelve el usuario actual
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Credenciales inválidas",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    try:
+        # Decodificar el token JWT
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+        
+    # Buscar el usuario en la base de datos
+    user = db.query(User).filter(User.id == user_id).first()
+    if user is None:
+        raise credentials_exception
+        
+    return user

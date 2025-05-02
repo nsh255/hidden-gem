@@ -1,4 +1,5 @@
 import json
+import os
 from itemadapter import ItemAdapter
 from sqlalchemy.orm import sessionmaker
 from app.database import engine
@@ -55,7 +56,9 @@ class PostgreSQLPipeline:
 
 class JsonPipeline:
     def open_spider(self, spider):
-        self.file = open('indie_games.json', 'w')
+        self.output_path = os.path.join(os.getcwd(), 'indie_games.json')
+        self.file = open(self.output_path, 'w')
+        spider.logger.info(f"Guardando resultados en: {self.output_path}")
         self.file.write('[\n')
         self._first_item = True
     

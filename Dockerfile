@@ -8,8 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar el código fuente
 COPY backend/app ./app
-COPY backend/alembic.ini ./
-COPY backend/alembic ./alembic
+
+COPY backend/scrapy.cfg /app/scrapy.cfg
 
 # Variable para indicar entorno
 ENV ENVIRONMENT=production
@@ -18,4 +18,4 @@ ENV ENVIRONMENT=production
 EXPOSE 8000
 
 # Comando para ejecutar las migraciones y luego la aplicación
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

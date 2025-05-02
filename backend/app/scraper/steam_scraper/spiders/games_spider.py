@@ -1,7 +1,7 @@
 import scrapy
 import json
 from scrapy.http import Request
-from ..items import GameItem
+from app.scraper.steam_scraper.items import GameItem
 
 class GamesSpider(scrapy.Spider):
     name = "games_spider"

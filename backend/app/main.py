@@ -9,7 +9,8 @@ logging.basicConfig(level=logging.INFO)
 app = FastAPI(
     title="HiddenGem API",
     description="API para descubrir juegos indie poco conocidos",
-    version="0.1.0"
+    version="0.1.0",
+    redoc_url="/redoc"
 )
 
 # Configurar middleware CORS

@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 import os
 import logging
+import sys
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -14,15 +15,24 @@ async def run_spider(background_tasks: BackgroundTasks):
     """
     def execute_spider():
         try:
-            # Cambia al directorio donde se encuentra el archivo scrapy.cfg
+            # Obtiene el directorio raíz del proyecto
             project_dir = Path(__file__).parent.parent.parent
             os.chdir(project_dir)
             
-            # Ejecuta el spider usando subprocess
+            logger.info(f"Ejecutando spider desde: {os.getcwd()}")
+            
+            # Ejecuta el spider usando crawl en lugar de runspider
             result = subprocess.run(
-                ["scrapy", "crawl", "games_spider", "-o", "games.json"],
+                [
+                    sys.executable, 
+                    "-m", 
+                    "scrapy", 
+                    "crawl", 
+                    "games_spider",
+                ],
                 capture_output=True,
-                text=True
+                text=True,
+                env={**os.environ, "PYTHONPATH": str(project_dir)}
             )
             
             if result.returncode != 0:
@@ -33,28 +43,33 @@ async def run_spider(background_tasks: BackgroundTasks):
                 
         except Exception as e:
             logger.exception(f"Error inesperado al ejecutar el spider: {str(e)}")
-
+    
     background_tasks.add_task(execute_spider)
     return {"message": "Spider iniciado en segundo plano"}
 
 @router.post("/run")
 async def execute_spider_sync():
-    """
-    Ejecuta el spider de Steam de forma síncrona y devuelve el resultado
-    """
     try:
-        # Cambia al directorio donde se encuentra el archivo scrapy.cfg
-        project_dir = Path(__file__).parent.parent.parent
-        os.chdir(project_dir)
-        
+        # En Docker, el directorio de trabajo ya debería ser /app
         logger.info(f"Ejecutando spider desde: {os.getcwd()}")
         
-        # Ejecuta el spider usando subprocess
+        # Ejecuta el spider directamente desde el entorno Docker
         result = subprocess.run(
-            ["scrapy", "crawl", "games_spider", "-o", "games.json"],
+            [
+                "python", 
+                "-m", 
+                "scrapy", 
+                "crawl", 
+                "games_spider",
+            ],
             capture_output=True,
-            text=True
+            text=True,
+            env={**os.environ}
         )
+        
+        # Mostrar detalles completos para depuración
+        logger.info(f"Salida del comando: {result.stdout}")
+        logger.info(f"Error del comando: {result.stderr}")
         
         if result.returncode != 0:
             logger.error(f"Error al ejecutar el spider: {result.stderr}")
@@ -62,7 +77,8 @@ async def execute_spider_sync():
                 "success": False,
                 "message": "Error al ejecutar el spider",
                 "error": result.stderr,
-                "output": result.stdout
+                "output": result.stdout,
+                "cwd": os.getcwd()
             }
         else:
             logger.info("Spider ejecutado correctamente")
@@ -71,7 +87,6 @@ async def execute_spider_sync():
                 "message": "Spider ejecutado correctamente",
                 "output": result.stdout
             }
-                
     except Exception as e:
         error_msg = str(e)
         logger.exception(f"Error inesperado al ejecutar el spider: {error_msg}")
