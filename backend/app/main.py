@@ -2,8 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from app.routes import auth, games, scraper, recommendations, rawg, admin
+from app.init_db import init_db
 import logging
 logging.basicConfig(level=logging.INFO)
+
+init_db()
 
 # Crear instancia de FastAPI con metadatos mejorados
 app = FastAPI(
