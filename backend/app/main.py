@@ -40,15 +40,14 @@ app = FastAPI(
         }
     ],
     contact={
-        "name": "Equipo HiddenGem",
-        "url": "https://github.com/tu_usuario/hidden-gem",
-        "email": "contacto@hiddengem.com",
+        "name": "Naoufal Saidi Hassani",
+        "url": "https://github.com/nsh255",
+        "email": "nsh255@inlumine.ual.es",
     },
     license_info={
-        "name": "MIT License",
-        "url": "https://opensource.org/licenses/MIT",
+        "name": "No hay licencia"
     },
-    terms_of_service="https://hiddengem.com/terms/",
+    terms_of_service="Uso de la API para DRA-UAL",
 )
 
 # Configurar middleware CORS
