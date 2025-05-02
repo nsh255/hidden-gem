@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float, Text, Boolean, ARRAY
 from sqlalchemy.orm import relationship
 from app.database import Base
+# Import the association table, not the User class to avoid circular imports
+from app.models.user import user_favorite_games
 
 class Game(Base):
     __tablename__ = "games"
@@ -23,6 +25,6 @@ class Game(Base):
     # Relaciones con otras tablas podrían ir aquí
     favorited_by = relationship(
         "User",
-        secondary="user_favorite_games",
+        secondary=user_favorite_games,
         back_populates="favorite_games"
     )
