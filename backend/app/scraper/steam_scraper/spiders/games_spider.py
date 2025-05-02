@@ -258,6 +258,11 @@ class GamesSpider(scrapy.Spider):
         tags = response.css('a.app_tag::text, div.glance_tags a::text').getall()
         if tags:
             game_item['tags'] = [tag.strip() for tag in tags]
+            
+            # NUEVO: Filtrar juegos con contenido sexual
+            if any(tag.strip() == "Contenido sexual" for tag in tags):
+                self.logger.info(f"Omitiendo juego con contenido sexual: {game_item.get('name', 'Unknown')}")
+                return None
         else:
             self.logger.debug(f"No se encontraron etiquetas para {game_item['name']}")
             game_item['tags'] = []

@@ -3,6 +3,7 @@ import os
 from itemadapter import ItemAdapter
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy import func, or_
 from app.database import engine
 from app.models.game import Game
 import logging
@@ -38,12 +39,39 @@ class PostgreSQLPipeline:
         logger.info("Pipeline PostgreSQL inicializada")
     
     def close_spider(self, spider):
-        self.session.close()
-        logger.info(f"Pipeline PostgreSQL finalizada. Estadísticas: "
-                   f"Procesados: {self.items_processed}, "
-                   f"Añadidos: {self.items_added}, "
-                   f"Actualizados: {self.items_updated}, "
-                   f"Errores: {self.errors}")
+        try:
+            # Eliminar juegos con contenido sexual
+            games_with_sexual_content = self.session.query(Game).filter(
+                func.array_to_string(Game.tags, ',').ilike('%Contenido sexual%')
+            ).all()
+            
+            if games_with_sexual_content:
+                sexual_count = len(games_with_sexual_content)
+                logger.info(f"Eliminando {sexual_count} juegos con contenido sexual...")
+                
+                for game in games_with_sexual_content:
+                    self.session.delete(game)
+                
+                self.session.commit()
+                logger.info(f"Se han eliminado {sexual_count} juegos con contenido sexual")
+            else:
+                logger.info("No se encontraron juegos con contenido sexual para eliminar")
+            
+            # Obtener y mostrar el número total de juegos en la base de datos
+            total_games = self.session.query(func.count(Game.id)).scalar()
+            logger.info(f"Total de juegos en la base de datos: {total_games}")
+            
+            # Cerrar la sesión
+            self.session.close()
+            
+            logger.info(f"Pipeline PostgreSQL finalizada. Estadísticas: "
+                      f"Procesados: {self.items_processed}, "
+                      f"Añadidos: {self.items_added}, "
+                      f"Actualizados: {self.items_updated}, "
+                      f"Errores: {self.errors}")
+        except Exception as e:
+            logger.error(f"Error al finalizar el pipeline: {str(e)}")
+            self.session.close()
     
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
@@ -51,6 +79,12 @@ class PostgreSQLPipeline:
         # Verificación adicional - solo procesar juegos indie
         is_indie = adapter.get('is_indie', False)
         if not is_indie:
+            return None
+        
+        # Verificar si el juego tiene contenido sexual
+        tags = adapter.get('tags', [])
+        if "Contenido sexual" in tags:
+            spider.logger.info(f"Saltando juego con contenido sexual: {adapter.get('name')}")
             return None
         
         self.items_processed += 1
