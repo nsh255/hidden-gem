@@ -52,14 +52,13 @@ export class RegisterComponent {
       // Extraer datos del formulario
       const { nick, email, password } = this.registerForm.value;
 
-      // Usar el nuevo método de registro
+      // Usar el método de registro
       this.authService.register(nick, email, password)
         .subscribe({
           next: (response) => {
             this.isLoading = false;
             console.log('Registro exitoso', response);
-            // El token ya está guardado, redirigir a la página principal
-            this.router.navigate(['/']);
+            // No necesitamos hacer navegación aquí, ya que el servicio lo manejará
           },
           error: (error) => {
             this.isLoading = false;

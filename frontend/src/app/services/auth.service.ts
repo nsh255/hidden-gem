@@ -79,6 +79,9 @@ export class AuthService {
         
         // Actualizar el BehaviorSubject con los datos del usuario
         this.currentUserSubject.next(response.user);
+        
+        // Redirigir al usuario a la página de inicio después del registro exitoso
+        this.router.navigate(['/home']);
       }),
       catchError((error: HttpErrorResponse) => {
         let errorMsg = 'Error en el registro';
