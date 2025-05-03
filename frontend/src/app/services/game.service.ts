@@ -13,6 +13,23 @@ export interface RecommendedGame {
   puntuacion: number;
 }
 
+// Interfaz para los detalles de un juego
+export interface GameDetails {
+  id: number;
+  name: string;
+  background_image: string;
+  description: string;
+  released: string;
+  rating: number;
+  genres: {id: number, name: string}[];
+  tags: {id: number, name: string}[];
+  platforms: {platform: {id: number, name: string}}[];
+  stores: {store: {id: number, name: string, domain: string}}[];
+  price?: number;
+  screenshots?: {id: number, image: string}[];
+  // Otros campos que devuelva la API de RAWG
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -50,5 +67,14 @@ export class GameService {
     
     // Realizar la petición GET
     return this.http.get<RecommendedGame[]>('/api/recommendations/by-genres', { params });
+  }
+
+  /**
+   * Obtiene los detalles de un juego específico por su ID
+   * @param id ID del juego a consultar
+   * @returns Observable con los detalles del juego
+   */
+  getGameById(id: string): Observable<GameDetails> {
+    return this.http.get<GameDetails>(`/api/rawg/game/${id}`);
   }
 }
