@@ -139,8 +139,12 @@ Todos los endpoints están disponibles bajo el prefijo `/api`.
 #### Scrapear Juegos en Masa
 - **URL**: `/api/steam-games/scrape-bulk`
 - **Método**: `POST`
-- **Descripción**: Inicia un proceso de scraping para obtener juegos de Steam
-- **Parámetros**: `min_games` (int, default=1000)
+- **Descripción**: Inicia un proceso de scraping para obtener juegos nuevos de Steam
+- **Parámetros**: `min_new_games` (int, default=100) - Número mínimo de juegos NUEVOS a añadir
+- **Características**: 
+  - Filtra automáticamente juegos que ya existen en la base de datos
+  - Asegura que se añadan al menos el número mínimo de juegos nuevos especificado (si es posible)
+  - Mantiene un registro de estadísticas sobre el proceso de scraping
 
 #### Contar Juegos de Steam
 - **URL**: `/api/steam-games/count`

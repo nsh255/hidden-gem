@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Query
+from fastapi import APIRouter, Depends, HTTPException, logger, status, BackgroundTasks, Query
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from ..database import get_db
@@ -59,7 +59,7 @@ def delete_steam_game(game_id: int, db: Session = Depends(get_db)):
 
 @router.post("/scrape-bulk", status_code=status.HTTP_200_OK)
 def scrape_bulk_steam_games(
-    min_games: int = Query(1000, description="Número mínimo de juegos a scrapear"),
+    min_new_games: int = Query(100, description="Número mínimo de juegos NUEVOS a añadir"),
     db: Session = Depends(get_db)
 ):
     """
@@ -70,10 +70,11 @@ def scrape_bulk_steam_games(
     
     Características:
     - Scrapea juegos que aparecen en la página de tags de Indie de Steam
+    - Asegura que se añadan al menos el número mínimo de juegos NUEVOS especificado
+    - Filtra automáticamente juegos que ya existen en la base de datos
     - Asegura que tengan el tag "Indie"
     - Excluye juegos con tags de contenido adulto ("Sexual Content", "Nudity", etc.)
     - Almacena los juegos en la base de datos para recomendaciones
-    - Continúa scrapeando hasta alcanzar el mínimo de juegos especificado
     
     Nota: Este es un proceso sincrónico que puede tardar varios minutos.
     Para bases de datos grandes se recomienda ejecutar en horario de bajo tráfico.
@@ -81,31 +82,34 @@ def scrape_bulk_steam_games(
     Returns:
         Estadísticas del proceso de scraping y número de juegos añadidos a la BD
     """
-    # Verificar cuántos juegos tenemos actualmente en la BD
-    current_count = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones).count()
-    
-    if current_count >= min_games:
-        return {
-            "status": "success",
-            "message": f"Ya existen suficientes juegos en la base de datos: {current_count}",
-            "juegos_actuales": current_count,
-            "juegos_nuevos": 0
-        }
-    
-    # Calcular cuántos juegos necesitamos scrapear
-    games_needed = min_games - current_count
-    
     try:
-        # Iniciar el scraping
-        logging.info(f"Iniciando scraping de al menos {games_needed} juegos nuevos desde la web de Steam...")
-        scrape_results = steam_scraper.scrape_bulk_indie_games(min_games=games_needed)
+        # Obtener los nombres de juegos que ya existen en la BD para evitar duplicados
+        existing_games = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones.nombre).all()
+        existing_names = [game[0] for game in existing_games]
+        
+        logger.info(f"Ya existen {len(existing_names)} juegos en la base de datos")
+        
+        # Iniciar el scraping, pasándole la lista de nombres existentes
+        logging.info(f"Iniciando scraping de al menos {min_new_games} juegos NUEVOS desde la web de Steam...")
+        scrape_results = steam_scraper.scrape_bulk_indie_games(
+            min_new_games=min_new_games, 
+            existing_names=existing_names
+        )
         
         games_to_add = scrape_results["results"]
         stats = scrape_results["stats"]
         
+        if len(games_to_add) == 0:
+            return {
+                "status": "warning",
+                "message": "No se encontraron juegos nuevos para añadir",
+                "estadisticas_scraping": stats,
+                "juegos_nuevos": 0,
+                "juegos_actuales": len(existing_names)
+            }
+        
         # Contar juegos añadidos con éxito
         added_count = 0
-        duplicates_count = 0
         
         # Añadir juegos a la base de datos en lotes para mejor rendimiento
         batch_size = 50
@@ -114,25 +118,10 @@ def scrape_bulk_steam_games(
             
             for game_data in batch:
                 try:
-                    # Verificar si el juego ya existe por nombre
-                    existing_game = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones).filter(
-                        models.JuegosScrapeadoDeSteamParaRecomendaiones.nombre == game_data["nombre"]
-                    ).first()
-                    
-                    if not existing_game:
-                        # Crear nuevo juego en la BD
-                        new_game = models.JuegosScrapeadoDeSteamParaRecomendaiones(
-                            nombre=game_data["nombre"],
-                            generos=game_data["generos"],
-                            precio=game_data["precio"],
-                            descripcion=game_data["descripcion"],
-                            tags=game_data["tags"],
-                            imagen_principal=game_data["imagen_principal"]
-                        )
-                        db.add(new_game)
-                        added_count += 1
-                    else:
-                        duplicates_count += 1
+                    # Crear nuevo juego en la BD
+                    new_game = models.JuegosScrapeadoDeSteamParaRecomendaiones(**game_data)
+                    db.add(new_game)
+                    added_count += 1
                         
                 except Exception as e:
                     logging.error(f"Error añadiendo juego {game_data.get('nombre', 'desconocido')}: {str(e)}")
@@ -149,7 +138,6 @@ def scrape_bulk_steam_games(
             "message": f"Proceso de scraping completado. Añadidos {added_count} juegos nuevos.",
             "estadisticas_scraping": stats,
             "juegos_nuevos": added_count,
-            "juegos_duplicados": duplicates_count,
             "juegos_actuales": final_count
         }
         

@@ -88,12 +88,6 @@ class SteamScraper:
             # Parsear HTML
             soup = BeautifulSoup(response.text, "lxml")
             
-            # Depuración - guardar HTML para análisis
-            with open(f"debug_steam_page_{tag}_{page}.html", "w", encoding="utf-8") as f:
-                f.write(response.text)
-            
-            logger.info(f"HTML guardado para depuración en debug_steam_page_{tag}_{page}.html")
-            
             # Buscar todos los contenedores de juegos en la estructura actual
             game_containers = soup.select("#search_resultsRows > a")
             
@@ -161,10 +155,6 @@ class SteamScraper:
                 return None
             
             soup = BeautifulSoup(response.text, "lxml")
-            
-            # Guarda el HTML para depuración
-            with open(f"debug_game_{app_id}.html", "w", encoding="utf-8") as f:
-                f.write(response.text)
             
             # Extraer nombre del juego
             title_elem = soup.select_one(".apphub_AppName")
@@ -237,12 +227,13 @@ class SteamScraper:
             logger.error(f"Error obteniendo detalles del juego {app_id}: {str(e)}")
             return None
     
-    def scrape_bulk_indie_games(self, min_games: int = 1000) -> Dict[str, Any]:
+    def scrape_bulk_indie_games(self, min_new_games: int = 100, existing_names=None) -> Dict[str, Any]:
         """
-        Scrapea juegos indies de Steam de forma masiva directamente de la web
+        Scrapea juegos indies de Steam de forma masiva asegurando un mínimo de juegos nuevos
         
         Args:
-            min_games: Número mínimo de juegos a scrapear
+            min_new_games: Número mínimo de juegos NUEVOS a añadir (por defecto: 100)
+            existing_names: Lista de nombres de juegos que ya existen en la base de datos
             
         Returns:
             Diccionario con resultados del scraping
@@ -250,22 +241,27 @@ class SteamScraper:
         results = {
             "total_consultados": 0,
             "juegos_validos": 0,
+            "juegos_duplicados": 0,
             "juegos_excluidos": 0,
             "errores": 0
         }
+        
+        # Si no se proporciona lista de nombres existentes, inicializar como vacía
+        if existing_names is None:
+            existing_names = []
         
         # Search terms para buscar juegos indies
         search_terms = ["indie", "indie game", "indie roguelike", "indie adventure", "indie rpg", "indie platformer"]
         valid_games = []
         
-        logger.info(f"Iniciando scraping masivo, objetivo: {min_games} juegos indies")
+        logger.info(f"Iniciando scraping masivo, objetivo: {min_new_games} juegos indies NUEVOS")
         
         # Iterar por cada término de búsqueda
         for term in search_terms:
             page = 1
-            max_pages = 20  # Máximo de páginas por búsqueda
+            max_pages = 30  # Aumentar el máximo de páginas por búsqueda para tener más posibilidades de encontrar nuevos juegos
             
-            while results["juegos_validos"] < min_games and page <= max_pages:
+            while results["juegos_validos"] < min_new_games and page <= max_pages:
                 # Obtener lista de juegos de la página actual
                 games_list = self.get_games_from_browse_page(tag=term, page=page)
                 
@@ -283,18 +279,29 @@ class SteamScraper:
                         if not app_id:
                             continue
                         
+                        # Verificar primero si el nombre ya existe para evitar procesamiento innecesario
+                        if game.get("nombre") in existing_names:
+                            results["juegos_duplicados"] += 1
+                            continue
+                        
                         # Obtener detalles completos
                         game_details = self.get_game_details(app_id)
                         
                         if game_details:
+                            # Verificar si el nombre ya existe en la base de datos
+                            if game_details["nombre"] in existing_names:
+                                results["juegos_duplicados"] += 1
+                                continue
+                                
                             valid_games.append(game_details)
+                            existing_names.append(game_details["nombre"])  # Añadir a la lista de nombres existentes
                             results["juegos_validos"] += 1
                             
                             if results["juegos_validos"] % 10 == 0:
-                                logger.info(f"Progreso: {results['juegos_validos']}/{min_games} juegos válidos")
+                                logger.info(f"Progreso: {results['juegos_validos']}/{min_new_games} juegos nuevos encontrados")
                             
-                            if results["juegos_validos"] >= min_games:
-                                logger.info(f"Alcanzado el objetivo de {min_games} juegos. Finalizando.")
+                            if results["juegos_validos"] >= min_new_games:
+                                logger.info(f"Alcanzado el objetivo de {min_new_games} juegos nuevos. Finalizando.")
                                 break
                         else:
                             results["juegos_excluidos"] += 1
@@ -304,14 +311,14 @@ class SteamScraper:
                         results["errores"] += 1
                 
                 # Si ya tenemos suficientes juegos, salir del bucle de páginas
-                if results["juegos_validos"] >= min_games:
+                if results["juegos_validos"] >= min_new_games:
                     break
             
             # Si ya tenemos suficientes juegos, salir del bucle de términos
-            if results["juegos_validos"] >= min_games:
+            if results["juegos_validos"] >= min_new_games:
                 break
         
-        logger.info(f"Scraping completado: {results['juegos_validos']} juegos válidos de {results['total_consultados']} consultados")
+        logger.info(f"Scraping completado: {results['juegos_validos']} juegos nuevos de {results['total_consultados']} consultados")
         
         return {
             "results": valid_games,
