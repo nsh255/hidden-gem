@@ -1,1 +1,97 @@
-<p>home works!</p>
+<div class="home-container">
+  <header class="header glass">
+    <h1 class="gem-title">Bienvenido a HiddenGem</h1>
+    <p class="gem-subtitle">Descubre joyas ocultas en el mundo de los videojuegos indies</p>
+  </header>
+
+  <section class="content-section">
+    <div class="section-header">
+      <h2 class="section-title">Juegos Recomendados</h2>
+      <p class="section-subtitle">Basado en tus preferencias</p>
+    </div>
+
+    <div class="game-grid">
+      <!-- Iteramos sobre los juegos recomendados -->
+      <div class="glass-card" *ngFor="let game of recommendedGames">
+        <div class="game-image-container">
+          <img [src]="game.imageUrl" [alt]="game.name" class="game-image">
+          <div class="game-rating">{{game.rating}}</div>
+        </div>
+        <div class="game-info">
+          <h3 class="game-title">{{game.name}}</h3>
+          <div class="game-genres">
+            <span class="genre-tag" *ngFor="let genre of game.genres">{{genre}}</span>
+          </div>
+          <div class="game-price">{{game.price | currency:'USD':'symbol':'1.2-2'}}</div>
+          <button class="btn-details" (click)="navigateToGameDetail(game.id)">Ver más</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="section-header">
+      <h2 class="section-title">Recomendados para ti</h2>
+      <p class="section-subtitle">Basado en tus géneros favoritos: {{ defaultGenres.join(', ') }}</p>
+    </div>
+
+    <!-- Indicador de carga -->
+    <div class="loading-container" *ngIf="isLoading">
+      <div class="loader"></div>
+      <p>Cargando recomendaciones...</p>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div class="error-message-container" *ngIf="errorMessage">
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <!-- Mensaje de no resultados -->
+    <div class="no-results-container" *ngIf="!isLoading && !errorMessage && recommendedByGenres.length === 0">
+      <p>No se encontraron juegos para estos géneros. ¡Prueba con otros géneros!</p>
+    </div>
+
+    <!-- Cuadrícula de juegos recomendados por géneros -->
+    <div class="game-grid" *ngIf="recommendedByGenres.length > 0">
+      <div class="glass-card" *ngFor="let game of recommendedByGenres">
+        <div class="game-image-container">
+          <img [src]="game.imagen_principal" [alt]="game.nombre" class="game-image">
+          <div class="game-rating">{{ (game.puntuacion * 10).toFixed(1) }}</div>
+        </div>
+        <div class="game-info">
+          <h3 class="game-title">{{ game.nombre }}</h3>
+          <div class="game-genres">
+            <span class="genre-tag" *ngFor="let genre of game.generos.slice(0, 3)">{{ genre }}</span>
+          </div>
+          <div class="game-price">{{ game.precio | currency:'USD':'symbol':'1.2-2'}}</div>
+          <button class="btn-details" (click)="navigateToGameDetail(game.id)">Ver más</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="section-header">
+      <h2 class="section-title">Juegos Populares</h2>
+      <p class="section-subtitle">Lo más jugado del momento</p>
+    </div>
+
+    <div class="game-grid">
+      <!-- Iteramos sobre los juegos populares -->
+      <div class="glass-card" *ngFor="let game of popularGames">
+        <div class="game-image-container">
+          <img [src]="game.imageUrl" [alt]="game.name" class="game-image">
+          <div class="game-rating">{{game.rating}}</div>
+        </div>
+        <div class="game-info">
+          <h3 class="game-title">{{game.name}}</h3>
+          <div class="game-genres">
+            <span class="genre-tag" *ngFor="let genre of game.genres">{{genre}}</span>
+          </div>
+          <div class="game-price">{{game.price | currency:'USD':'symbol':'1.2-2'}}</div>
+          <button class="btn-details" (click)="navigateToGameDetail(game.id)">Ver más</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
