@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, logger, status, BackgroundTasks, Query
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Query
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from ..database import get_db
@@ -87,7 +87,7 @@ def scrape_bulk_steam_games(
         existing_games = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones.nombre).all()
         existing_names = [game[0] for game in existing_games]
         
-        logger.info(f"Ya existen {len(existing_names)} juegos en la base de datos")
+        logging.info(f"Ya existen {len(existing_names)} juegos en la base de datos")
         
         # Iniciar el scraping, pasándole la lista de nombres existentes
         logging.info(f"Iniciando scraping de al menos {min_new_games} juegos NUEVOS desde la web de Steam...")
