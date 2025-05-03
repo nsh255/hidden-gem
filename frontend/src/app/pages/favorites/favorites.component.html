@@ -1,1 +1,47 @@
-<p>favorites works!</p>
+<div class="favorites-container">
+  <header class="favorites-header glass-container">
+    <h1 class="favorites-title">Mis Juegos Favoritos</h1>
+    <p class="favorites-subtitle">Aquí puedes encontrar todos los juegos que has marcado como favoritos</p>
+  </header>
+
+  <!-- Indicador de carga -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loader"></div>
+    <p>Cargando tus juegos favoritos...</p>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div class="error-message glass-container" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+    <button class="btn-retry" (click)="loadFavoriteGames()">Reintentar</button>
+  </div>
+
+  <!-- Mensaje de "sin favoritos" -->
+  <div class="no-favorites glass-container" *ngIf="!isLoading && !errorMessage && favoriteGames.length === 0">
+    <div class="empty-state">
+      <div class="empty-icon">♡</div>
+      <h2>No tienes juegos favoritos</h2>
+      <p>Explora juegos y marca tus favoritos para verlos aquí</p>
+      <button class="btn-explore" routerLink="/home">Explorar juegos</button>
+    </div>
+  </div>
+
+  <!-- Lista de juegos favoritos -->
+  <div class="favorites-grid" *ngIf="!isLoading && favoriteGames.length > 0">
+    <div class="favorite-card glass-container" *ngFor="let game of favoriteGames" (click)="navigateToGameDetail(game.id)">
+      <div class="favorite-image-container">
+        <img [src]="game.imageUrl" [alt]="game.name" class="favorite-image">
+        <button class="btn-remove" [class.removing]="isRemoving[game.id]" (click)="removeFromFavorites(game.id, $event)" [disabled]="isRemoving[game.id]">
+          <span *ngIf="!isRemoving[game.id]">✖</span>
+          <span *ngIf="isRemoving[game.id]" class="removing-loader"></span>
+        </button>
+      </div>
+      <div class="favorite-info">
+        <h3 class="favorite-title">{{ game.name }}</h3>
+        <div class="favorite-genres">
+          <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 2)">{{ genre }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

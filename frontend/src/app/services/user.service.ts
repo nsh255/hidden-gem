@@ -37,4 +37,12 @@ export class UserService {
   checkIfGameIsFavorite(gameId: number): Observable<boolean> {
     return this.http.get<boolean>(`/api/favorite-games/check/${gameId}`);
   }
+
+  /**
+   * Obtiene todos los juegos favoritos del usuario actual
+   * @returns Observable con la lista de juegos favoritos
+   */
+  getFavoriteGames(): Observable<any[]> {
+    return this.http.get<any[]>('/api/favorite-games/current-user');
+  }
 }
