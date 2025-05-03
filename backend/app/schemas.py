@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional
 
 # Usuario schemas
@@ -55,3 +55,19 @@ class JuegoFavorito(JuegoFavoritoBase):
 class FavoritoAdd(BaseModel):
     usuario_id: int
     juego_id: int
+
+# Schema para juegos recomendados
+class JuegoRecomendado(BaseModel):
+    """
+    Información de un juego recomendado con su puntuación de relevancia
+    """
+    id: int
+    nombre: str
+    generos: List[str]
+    precio: float
+    descripcion: str
+    imagen_principal: str
+    puntuacion: float = Field(..., description="Puntuación de relevancia basada en las preferencias del usuario (mayor = más relevante)")
+    
+    class Config:
+        orm_mode = True

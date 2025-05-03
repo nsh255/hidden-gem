@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html
 from fastapi.staticfiles import StaticFiles
-from .routes import users, steam_games, favorite_games, rawg_games
+from .routes import users, steam_games, favorite_games, rawg_games, recommendations
 from .database import engine
 from . import models
 from .config import settings
@@ -27,6 +27,14 @@ tags_metadata = [
     {
         "name": "rawg-games",
         "description": "Interacción con la API de RAWG para buscar y obtener información de juegos.",
+    },
+    {
+        "name": "recommendations",
+        "description": "Sistema de recomendación de juegos indies basado en preferencias del usuario y análisis de géneros favoritos.",
+        "externalDocs": {
+            "description": "Algoritmo de recomendación",
+            "url": "https://github.com/yourusername/hidden-gem/wiki/recommendation-algorithm",
+        },
     },
 ]
 
@@ -69,6 +77,7 @@ app.include_router(users.router)
 app.include_router(steam_games.router)
 app.include_router(favorite_games.router)
 app.include_router(rawg_games.router)
+app.include_router(recommendations.router)
 
 @app.get("/", tags=["root"])
 def read_root():

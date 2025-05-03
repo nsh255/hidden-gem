@@ -94,23 +94,42 @@ def add_rawg_game_to_favorites(
 
 @router.get("/trending", response_model=dict)
 def get_trending_games(
-    page: int = Query(1, description="Número de página"),
-    page_size: int = Query(20, description="Elementos por página")
+    page: int = Query(1, description="Número de página inicial"),
+    page_size: int = Query(20, description="Elementos por página (máx. 40 recomendado)"),
+    max_pages: int = Query(1, description="Número de páginas a recuperar (aumenta la cantidad de juegos)", ge=1, le=5)
 ):
     """
-    Obtiene juegos populares o tendencia desde RAWG
-    """
-    url = f"{rawg_api.BASE_URL}/games"
-    params = {
-        'key': rawg_api.api_key,
-        'ordering': '-added',  # Ordenar por popularidad
-        'page': page,
-        'page_size': page_size
-    }
+    Obtiene juegos populares o tendencia desde RAWG.
     
-    try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        raise HTTPException(status_code=503, detail=f"Error al conectar con RAWG API: {str(e)}")
+    Esta función permite recuperar más juegos en tendencia combinando resultados de múltiples páginas.
+    
+    - **page**: Página inicial para la búsqueda
+    - **page_size**: Número de juegos por página (máximo recomendado: 40)
+    - **max_pages**: Número de páginas a recuperar (1-5)
+    
+    Ejemplo: Para obtener 100 juegos en tendencia, puedes usar page_size=20 y max_pages=5
+    """
+    result = rawg_api.get_trending_games(page, page_size, max_pages)
+    if not result:
+        raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
+    return result
+
+@router.get("/random", response_model=dict)
+def get_random_games(
+    count: int = Query(10, description="Número de juegos aleatorios a recuperar", ge=1, le=50)
+):
+    """
+    Obtiene una selección aleatoria de juegos desde RAWG.
+    
+    Esta función es útil para descubrir nuevos juegos de forma aleatoria o para
+    presentar recomendaciones variadas a los usuarios.
+    
+    - **count**: Número de juegos aleatorios a devolver (entre 1 y 50)
+    
+    La función consulta diferentes páginas aleatorias de la API de RAWG para garantizar
+    una mayor variedad en los resultados.
+    """
+    result = rawg_api.get_random_games(count)
+    if not result:
+        raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
+    return result
