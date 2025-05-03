@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
+import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-auth',
@@ -15,7 +17,11 @@ export class AuthComponent {
   errorMessage: string | null = null;
   isLoading = false;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(
+    private fb: FormBuilder, 
+    private authService: AuthService,
+    private router: Router
+  ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
@@ -27,25 +33,30 @@ export class AuthComponent {
       this.isLoading = true;
       this.errorMessage = null;
       
-      this.http.post('/api/auth/login', this.loginForm.value)
+      const { email, password } = this.loginForm.value;
+      
+      this.authService.login(email, password)
         .subscribe({
           next: (response) => {
-            console.log('Login successful', response);
             this.isLoading = false;
-            // Here you would typically store the auth token and redirect
+            console.log('Login exitoso', response);
+            // Redirige a la página principal después del login
+            this.router.navigate(['/']);
           },
           error: (error: HttpErrorResponse) => {
             this.isLoading = false;
-            if (error.error && error.error.message) {
-              this.errorMessage = error.error.message;
+            if (error.status === 401) {
+              this.errorMessage = 'Credenciales incorrectas. Por favor, verifica tu email y contraseña.';
+            } else if (error.error && error.error.detail) {
+              this.errorMessage = error.error.detail;
             } else {
               this.errorMessage = 'Error al iniciar sesión. Por favor, inténtalo de nuevo.';
             }
-            console.error('Login error', error);
+            console.error('Error de login', error);
           }
         });
     } else {
-      // Mark all fields as touched to trigger validation messages
+      // Marcar todos los campos como touched para mostrar errores de validación
       Object.keys(this.loginForm.controls).forEach(key => {
         const control = this.loginForm.get(key);
         control?.markAsTouched();

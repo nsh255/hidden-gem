@@ -68,6 +68,43 @@ La API está organizada en módulos temáticos y todos los endpoints están disp
 
 Todos los endpoints están disponibles bajo el prefijo `/api`.
 
+### Autenticación
+
+#### Login (Form)
+- **URL**: `/api/auth/login`
+- **Método**: `POST`
+- **Descripción**: Inicia sesión de usuario usando form-data (OAuth2)
+- **Forma del Body**:
+  ```
+  username: string (email o nick del usuario)
+  password: string
+  ```
+- **Respuesta**:
+  ```json
+  {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "bearer",
+    "user": {
+      "id": 1,
+      "nick": "username",
+      "email": "user@example.com"
+    }
+  }
+  ```
+
+#### Login JSON
+- **URL**: `/api/auth/login-json`
+- **Método**: `POST`
+- **Descripción**: Alternativa JSON al endpoint de login estándar
+- **Cuerpo**:
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "password123"
+  }
+  ```
+- **Respuesta**: Igual que en el endpoint `/api/auth/login`
+
 ### Gestión de Usuarios
 
 #### Crear Usuario
@@ -248,8 +285,10 @@ Todos los endpoints están disponibles bajo el prefijo `/api`.
 
 ### Flujo de Usuario Típico
 
-1. Registrar un usuario:
+1. Iniciar sesión o registrarse:
    ```
+   POST /api/auth/login-json
+   // o
    POST /api/users/
    ```
 
@@ -293,11 +332,36 @@ Todos los endpoints están disponibles bajo el prefijo `/api`.
 ]
 ```
 
+### Ejemplo de Autenticación
+
+```json
+// Solicitud
+POST /api/auth/login-json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+// Respuesta
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer",
+  "user": {
+    "id": 1,
+    "nick": "username",
+    "email": "user@example.com"
+  }
+}
+```
+
 ## Notas para el Frontend
 
 Al diseñar el frontend, considera:
 
 1. Autenticación de usuarios
+   - Usar los endpoints de `/api/auth/` para login
+   - Almacenar el token JWT en localStorage o cookies seguras
+   - Incluir el token en el header `Authorization: Bearer {token}` para endpoints protegidos
 2. Pantallas de descubrimiento y búsqueda de juegos 
 3. Perfil de usuario con juegos favoritos
 4. Sistema de recomendaciones destacado
