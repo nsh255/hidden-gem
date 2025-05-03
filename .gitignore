@@ -36,3 +36,37 @@ build/
 # Logs
 logs/
 *.log
+
+# ANGULAR SPECIFIC IGNORES
+# Dependencies
+node_modules/
+.angular/
+.angular/cache/
+
+# Compiled output
+/dist/
+/tmp/
+/out-tsc/
+/bazel-out/
+
+# Angular build artifacts
+*.js.map
+*.css.map
+
+# Node.js
+npm-debug.log
+yarn-error.log
+.pnpm-debug.log
+yarn.lock
+package-lock.json
+
+# Testing
+/coverage/
+/nyc_output/
+
+# E2E
+/e2e/*.js
+/e2e/*.map
+
+# System files
+Thumbs.db
