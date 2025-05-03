@@ -1,1 +1,84 @@
-<p>game-detail works!</p>
+<div class="detail-page-container">
+  <!-- Indicador de carga -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loader"></div>
+    <p>Cargando detalles del juego...</p>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div class="error-message glass-container" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+    <button class="btn-back" (click)="goBack()">Volver</button>
+  </div>
+
+  <!-- Contenido del juego -->
+  <div class="game-detail-content" *ngIf="game && !isLoading">
+    <!-- Banner del juego -->
+    <div class="game-banner">
+      <img [src]="game.imageUrl" [alt]="game.name" class="game-background">
+      <div class="banner-overlay"></div>
+    </div>
+
+    <!-- Sección principal de detalles -->
+    <div class="glass-container main-details">
+      <div class="game-header">
+        <div class="game-title-section">
+          <h1 class="detail-title">{{ game.name }}</h1>
+          <div class="game-meta">
+            <span class="release-date">Lanzado: {{ game.releaseDate | date:'dd/MM/yyyy' }}</span>
+            <span class="game-rating">{{ game.rating }}</span>
+          </div>
+        </div>
+        <div class="game-actions">
+          <button class="btn-favorite" [class.favorited]="isFavorite" (click)="toggleFavorite()">
+            <span class="heart-icon">{{ isFavorite ? '♥' : '♡' }}</span>
+            {{ isFavorite ? 'Añadido a favoritos' : 'Añadir a favoritos' }}
+          </button>
+          <button class="btn-back" (click)="goBack()">Volver</button>
+        </div>
+      </div>
+
+      <div class="game-genres">
+        <span class="genre-tag" *ngFor="let genre of game.genres">{{ genre }}</span>
+      </div>
+
+      <div class="game-price-container">
+        <span class="game-price">{{ game.price | currency:'USD':'symbol':'1.2-2' }}</span>
+        <a [href]="game.storeUrl" target="_blank" class="btn-buy" *ngIf="game.storeUrl">Ver en tienda</a>
+      </div>
+
+      <div class="game-description">
+        <h2>Descripción</h2>
+        <p [innerHTML]="game.description"></p>
+      </div>
+
+      <!-- Galería de imágenes -->
+      <div class="game-gallery" *ngIf="game.screenshots && game.screenshots.length > 0">
+        <h2>Galería</h2>
+        <div class="screenshot-grid">
+          <div class="screenshot" *ngFor="let screenshot of game.screenshots">
+            <img [src]="screenshot" alt="Captura de pantalla del juego">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de juegos similares -->
+    <div class="glass-container similar-games" *ngIf="similarGames && similarGames.length > 0">
+      <h2>Juegos similares que te podrían gustar</h2>
+      <div class="similar-games-grid">
+        <div class="similar-game-card" *ngFor="let similarGame of similarGames" (click)="navigateToGame(similarGame.id)">
+          <div class="similar-game-image">
+            <img [src]="similarGame.imageUrl" [alt]="similarGame.name">
+          </div>
+          <div class="similar-game-info">
+            <h3>{{ similarGame.name }}</h3>
+            <div class="similar-game-genres">
+              <span class="genre-tag" *ngFor="let genre of similarGame.genres.slice(0, 2)">{{ genre }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
