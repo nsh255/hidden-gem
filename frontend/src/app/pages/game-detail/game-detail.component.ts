@@ -2,6 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Location } from '@angular/common';
+import { GameService, GameDetails } from '../../services/game.service';
+import { UserService } from '../../services/user.service';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 // Interfaz para el detalle del juego (se usará eventualmente con el servicio)
 interface GameDetail {
@@ -35,15 +39,21 @@ interface SimilarGame {
 export class GameDetailComponent implements OnInit {
   gameId: number | null = null;
   game: GameDetail | null = null;
+  gameData: GameDetails | null = null;
   similarGames: SimilarGame[] = [];
   isLoading: boolean = true;
   errorMessage: string | null = null;
   isFavorite: boolean = false;
+  isAddingToFavorites: boolean = false;
+  favoriteActionMessage: string | null = null;
+  favoriteActionSuccess: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private location: Location
+    private location: Location,
+    private gameService: GameService,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
@@ -52,7 +62,7 @@ export class GameDetailComponent implements OnInit {
       const idParam = params.get('id');
       if (idParam) {
         this.gameId = parseInt(idParam, 10);
-        this.loadGameDetails(this.gameId);
+        this.fetchGameDetails(idParam);
       } else {
         this.errorMessage = 'No se pudo encontrar el ID del juego.';
         this.isLoading = false;
@@ -61,42 +71,59 @@ export class GameDetailComponent implements OnInit {
   }
 
   /**
-   * Carga los detalles del juego (simulado por ahora)
-   * En el futuro, esto usará un servicio para obtener datos reales
+   * Obtiene los detalles del juego desde la API
+   * @param gameId ID del juego a consultar
    */
-  loadGameDetails(gameId: number): void {
+  fetchGameDetails(gameId: string): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    this.gameService.getGameById(gameId)
+      .pipe(
+        catchError(error => {
+          console.error('Error al obtener detalles del juego:', error);
+          this.errorMessage = 'No se pudieron cargar los detalles del juego. Por favor, inténtalo de nuevo.';
+          this.isLoading = false;
+          return of(null);
+        })
+      )
+      .subscribe(data => {
+        if (data) {
+          this.gameData = data;
+          // Convertir datos de la API al formato que espera nuestra interfaz
+          this.mapApiDataToGameDetail(data);
+          // También podríamos cargar juegos similares aquí basados en géneros
+          this.loadSimilarGames();
+        }
+        this.isLoading = false;
+      });
+  }
+
+  /**
+   * Convierte los datos de la API al formato que espera nuestra interfaz
+   */
+  mapApiDataToGameDetail(data: GameDetails): void {
+    this.game = {
+      id: data.id,
+      name: data.name,
+      imageUrl: data.background_image,
+      description: data.description,
+      genres: data.genres?.map(g => g.name) || [],
+      releaseDate: new Date(data.released),
+      price: data.price || 0,
+      rating: data.rating ? data.rating.toFixed(1) : 'N/A',
+      storeUrl: data.stores?.length ? `https://${data.stores[0].store.domain}` : undefined,
+      screenshots: data.screenshots?.map(s => s.image) || []
+    };
+  }
+
+  /**
+   * Carga juegos similares (simulado por ahora)
+   */
+  loadSimilarGames(): void {
     // Simulación de carga
     setTimeout(() => {
-      // Datos de ejemplo - En el futuro, estos vendrán del servicio
-      this.game = {
-        id: gameId,
-        name: 'Hollow Knight',
-        imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/367520/header.jpg',
-        description: `
-          <p>Hollow Knight es una aventura de acción clásica en 2D ambientada en un vasto mundo interconectado. 
-          Explora cavernas sinuosas, ciudades antiguas y páramos mortales. Combate contra criaturas corrompidas, 
-          hazte amigo de bichos extraños y resuelve los antiguos misterios que yacen en el corazón del reino.</p>
-          
-          <p>- Explora vastos mundos interconectados<br>
-          - Conoce a extraños insectos y bestias misteriosas<br>
-          - Evoluciona con poderosos hechizos y habilidades<br>
-          - Personaliza tu experiencia con amuletos para aumentar las habilidades del Caballero<br>
-          - Escapa de las abrumadoras presencias que habitan las profundidades</p>
-        `,
-        genres: ['Metroidvania', 'Souls-like', 'Plataformas', 'Indie', 'Aventura'],
-        releaseDate: new Date('2017-02-24'),
-        price: 14.99,
-        rating: '9.5',
-        storeUrl: 'https://store.steampowered.com/app/367520/Hollow_Knight/',
-        screenshots: [
-          'https://cdn.akamai.steamstatic.com/steam/apps/367520/ss_89b986b8b7474773aae38b5c5f37412212a7478f.jpg',
-          'https://cdn.akamai.steamstatic.com/steam/apps/367520/ss_32af31e92a599a71937171de4588963f1be7b5bc.jpg',
-          'https://cdn.akamai.steamstatic.com/steam/apps/367520/ss_b01aee735c14160ea0c20b9b28d31493e969ec73.jpg',
-          'https://cdn.akamai.steamstatic.com/steam/apps/367520/ss_12ab4d4681375a0cd6c42e0962874ede93c9340c.jpg'
-        ]
-      };
-
-      // Juegos similares de ejemplo
+      // Para el ejemplo, usamos datos simulados
       this.similarGames = [
         {
           id: 1,
@@ -117,18 +144,53 @@ export class GameDetailComponent implements OnInit {
           genres: ['Roguelike', 'Acción', 'Indie']
         }
       ];
+    }, 500);
+  }
 
-      this.isLoading = false;
-    }, 1000); // Simulamos 1 segundo de carga
+  /**
+   * Añade el juego actual a favoritos
+   */
+  addToFavorites(): void {
+    if (!this.gameId) return;
+    
+    this.isAddingToFavorites = true;
+    this.favoriteActionMessage = null;
+
+    this.userService.addGameToFavorites(this.gameId)
+      .pipe(
+        catchError(error => {
+          console.error('Error al añadir a favoritos:', error);
+          this.favoriteActionMessage = 'Error al añadir a favoritos. Por favor, inténtalo de nuevo.';
+          this.favoriteActionSuccess = false;
+          this.isAddingToFavorites = false;
+          return of(null);
+        })
+      )
+      .subscribe(response => {
+        if (response) {
+          this.isFavorite = true;
+          this.favoriteActionMessage = '¡Juego añadido a favoritos!';
+          this.favoriteActionSuccess = true;
+        }
+        this.isAddingToFavorites = false;
+        
+        // Auto-ocultar el mensaje después de 3 segundos
+        setTimeout(() => {
+          this.favoriteActionMessage = null;
+        }, 3000);
+      });
   }
 
   /**
    * Toggle para añadir/quitar de favoritos
    */
   toggleFavorite(): void {
-    this.isFavorite = !this.isFavorite;
-    // En el futuro, llamaremos a un servicio para guardar este estado
-    console.log(`Juego ${this.isFavorite ? 'añadido a' : 'eliminado de'} favoritos`);
+    if (this.isFavorite) {
+      // Lógica para quitar de favoritos (para implementar más adelante)
+      console.log('Quitar de favoritos no implementado aún');
+    } else {
+      this.addToFavorites();
+    }
   }
 
   /**

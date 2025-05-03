@@ -156,6 +156,16 @@
     background: rgba(var(--accent-purple-rgb), 0.3);
     color: var(--accent-purple);
   }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    
+    &:hover {
+      background: rgba(var(--accent-purple-rgb), 0.15);
+      transform: none;
+    }
+  }
 }
 
 .btn-back {
@@ -177,6 +187,30 @@
   &:hover {
     background: rgba(var(--accent-green-rgb), 0.25);
     transform: translateY(-2px);
+  }
+}
+
+// Mensaje de acción para favoritos
+.message-container {
+  margin: 1rem 0;
+  padding: 0.5rem 0;
+}
+
+.action-message {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  
+  &.success {
+    background: rgba(var(--accent-green-rgb), 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(var(--accent-green-rgb), 0.3);
+  }
+  
+  &.error {
+    background: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
   }
 }
 

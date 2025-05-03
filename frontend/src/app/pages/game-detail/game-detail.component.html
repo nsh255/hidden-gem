@@ -30,11 +30,20 @@
           </div>
         </div>
         <div class="game-actions">
-          <button class="btn-favorite" [class.favorited]="isFavorite" (click)="toggleFavorite()">
+          <!-- Botón para añadir a favoritos -->
+          <button class="btn-favorite" [class.favorited]="isFavorite" (click)="toggleFavorite()" [disabled]="isAddingToFavorites">
             <span class="heart-icon">{{ isFavorite ? '♥' : '♡' }}</span>
-            {{ isFavorite ? 'Añadido a favoritos' : 'Añadir a favoritos' }}
+            <span *ngIf="!isAddingToFavorites">{{ isFavorite ? 'Añadido a favoritos' : 'Añadir a favoritos' }}</span>
+            <span *ngIf="isAddingToFavorites">Añadiendo...</span>
           </button>
           <button class="btn-back" (click)="goBack()">Volver</button>
+        </div>
+      </div>
+
+      <!-- Mensaje de acción sobre favoritos -->
+      <div class="message-container" *ngIf="favoriteActionMessage">
+        <div class="action-message" [class.success]="favoriteActionSuccess" [class.error]="!favoriteActionSuccess">
+          {{ favoriteActionMessage }}
         </div>
       </div>
 
