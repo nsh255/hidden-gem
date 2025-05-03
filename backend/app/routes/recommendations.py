@@ -38,6 +38,11 @@ def get_recommendations_for_user(
     - **limit**: Número de recomendaciones a devolver
     
     El sistema no recomienda juegos que el usuario ya tiene marcados como favoritos.
+    
+    Ejemplo de uso:
+    ```
+    GET /api/recommendations/for-user/1?max_price=25&limit=10
+    ```
     """
     # Verificar si el usuario existe
     user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
@@ -90,6 +95,11 @@ def get_recommendations_by_genres(
     
     Las recomendaciones incluyen una puntuación de relevancia donde valores más 
     altos indican mayor coincidencia con los géneros especificados.
+    
+    Ejemplo de uso:
+    ```
+    GET /api/recommendations/by-genres?genres=Action&genres=RPG&max_price=20&limit=5
+    ```
     """
     # Crear diccionario de preferencias de géneros con pesos iguales
     genre_preferences = {genre: 1.0/len(genres) for genre in genres}

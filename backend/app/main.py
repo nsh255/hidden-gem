@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html
 from fastapi.staticfiles import StaticFiles
@@ -9,6 +9,9 @@ from .config import settings
 
 # Crear tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
+
+# Crear un router principal con prefijo /api
+api_router = APIRouter(prefix="/api")
 
 # Definir tags para agrupar endpoints en la documentación
 tags_metadata = [
@@ -49,6 +52,9 @@ app = FastAPI(
     * Acceder a juegos de Steam para recomendaciones
     * Permitir a los usuarios marcar sus juegos favoritos
     * Interactuar con la API de RAWG para descubrir nuevos juegos
+    * Obtener recomendaciones personalizadas basadas en preferencias
+    
+    Todos los endpoints están disponibles bajo el prefijo `/api`.
     
     La API usa PostgreSQL como base de datos y está construida con FastAPI.
     """,
@@ -72,12 +78,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir routers
-app.include_router(users.router)
-app.include_router(steam_games.router)
-app.include_router(favorite_games.router)
-app.include_router(rawg_games.router)
-app.include_router(recommendations.router)
+# Incluir routers en el router principal
+api_router.include_router(users.router)
+api_router.include_router(steam_games.router)
+api_router.include_router(favorite_games.router)
+api_router.include_router(rawg_games.router)
+api_router.include_router(recommendations.router)
+
+# Incluir el router principal en la aplicación
+app.include_router(api_router)
 
 @app.get("/", tags=["root"])
 def read_root():
@@ -86,7 +95,8 @@ def read_root():
         "documentation": {
             "swagger": "/docs",
             "redoc": "/redoc"
-        }
+        },
+        "api_prefix": "/api"
     }
 
 @app.get("/health", status_code=200, tags=["health"])
