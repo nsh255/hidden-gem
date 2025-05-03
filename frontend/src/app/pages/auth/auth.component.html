@@ -2,6 +2,10 @@
   <div class="card glass">
     <h2 class="title">Iniciar sesión</h2>
     
+    <div *ngIf="registrationSuccess" class="success-alert glass">
+      ¡Registro completado con éxito! Ya puedes iniciar sesión.
+    </div>
+    
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
         <label for="email">Email</label>
@@ -39,6 +43,10 @@
       <button type="submit" class="btn" [disabled]="isLoading">
         {{ isLoading ? 'Procesando...' : 'Iniciar sesión' }}
       </button>
+      
+      <div class="register-link">
+        ¿No tienes cuenta? <a routerLink="/register">Regístrate ahora</a>
+      </div>
     </form>
   </div>
 </div>

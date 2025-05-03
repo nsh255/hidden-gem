@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
 interface User {
@@ -14,6 +14,13 @@ interface AuthResponse {
   token: string;
   token_type: string;
   user: User;
+}
+
+interface RegisterResponse {
+  id: number;
+  nick: string;
+  email: string;
+  precio_max: number;
 }
 
 @Injectable({
@@ -48,6 +55,49 @@ export class AuthService {
           this.currentUserSubject.next(response.user);
         })
       );
+  }
+  
+  /**
+   * Registra un nuevo usuario y lo autentica automáticamente
+   * @param nombre Nombre de usuario (nick)
+   * @param email Email del usuario
+   * @param password Contraseña del usuario
+   * @returns Observable con la respuesta de autenticación
+   */
+  register(nombre: string, email: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>('/api/auth/register', {
+      nick: nombre,
+      email: email,
+      password: password
+    }).pipe(
+      tap(response => {
+        // Guardar el token JWT en localStorage
+        localStorage.setItem(this.tokenKey, response.token);
+        
+        // Guardar la información del usuario en localStorage
+        localStorage.setItem(this.userKey, JSON.stringify(response.user));
+        
+        // Actualizar el BehaviorSubject con los datos del usuario
+        this.currentUserSubject.next(response.user);
+      }),
+      catchError((error: HttpErrorResponse) => {
+        let errorMsg = 'Error en el registro';
+        
+        // Manejar errores de validación
+        if (error.status === 400) {
+          if (error.error && error.error.detail) {
+            if (typeof error.error.detail === 'string') {
+              errorMsg = error.error.detail;
+            } else if (Array.isArray(error.error.detail)) {
+              // Para errores de validación Pydantic que vienen como array
+              errorMsg = error.error.detail.map((err: any) => err.msg).join(', ');
+            }
+          }
+        }
+        
+        return throwError(() => new Error(errorMsg));
+      })
+    );
   }
   
   logout(): void {

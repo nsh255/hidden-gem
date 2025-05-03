@@ -105,6 +105,20 @@ Todos los endpoints están disponibles bajo el prefijo `/api`.
   ```
 - **Respuesta**: Igual que en el endpoint `/api/auth/login`
 
+#### Registro
+- **URL**: `/api/auth/register`
+- **Método**: `POST`
+- **Descripción**: Registra un nuevo usuario y devuelve token de autenticación
+- **Cuerpo**:
+  ```json
+  {
+    "nick": "username",
+    "email": "user@example.com",
+    "password": "password123"
+  }
+  ```
+- **Respuesta**: Igual que en los endpoints de login (token JWT + datos de usuario)
+
 ### Gestión de Usuarios
 
 #### Crear Usuario
@@ -285,11 +299,11 @@ Todos los endpoints están disponibles bajo el prefijo `/api`.
 
 ### Flujo de Usuario Típico
 
-1. Iniciar sesión o registrarse:
+1. Registrarse o iniciar sesión:
    ```
-   POST /api/auth/login-json
+   POST /api/auth/register
    // o
-   POST /api/users/
+   POST /api/auth/login-json
    ```
 
 2. Buscar juegos en RAWG:
@@ -338,6 +352,29 @@ Todos los endpoints están disponibles bajo el prefijo `/api`.
 // Solicitud
 POST /api/auth/login-json
 {
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+// Respuesta
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer",
+  "user": {
+    "id": 1,
+    "nick": "username",
+    "email": "user@example.com"
+  }
+}
+```
+
+### Ejemplo de Registro
+
+```json
+// Solicitud
+POST /api/auth/register
+{
+  "nick": "username",
   "email": "user@example.com",
   "password": "password123"
 }

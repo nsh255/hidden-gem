@@ -75,3 +75,13 @@ class JuegoRecomendado(BaseModel):
 class UserLogin(BaseModel):
     email: str
     password: str
+
+class UserRegister(BaseModel):
+    nick: str
+    email: EmailStr
+    password: str
+
+class AuthResponse(BaseModel):
+    token: str
+    token_type: str
+    user: dict

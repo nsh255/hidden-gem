@@ -66,10 +66,10 @@ app = FastAPI(
     
     La API utiliza autenticación basada en JWT (JSON Web Tokens). Para acceder a endpoints protegidos:
     
-    1. Obtén un token usando el endpoint `/api/auth/login` o `/api/auth/login-json`
+    1. Registrate usando el endpoint `/api/auth/register` o inicia sesión con `/api/auth/login`
     2. Incluye el token en el encabezado de tus peticiones: `Authorization: Bearer {token}`
     
-    Ejemplo de respuesta de login:
+    Ejemplo de respuesta de registro/login:
     ```json
     {
       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
