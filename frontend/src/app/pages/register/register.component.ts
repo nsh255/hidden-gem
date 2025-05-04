@@ -40,7 +40,7 @@ export class RegisterComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
-      precio_max: [20.0] // Valor por defecto para el precio máximo
+      precio_max: [20.0, [Validators.required, Validators.min(0), Validators.max(100)]] // Added validators
     }, { validators: passwordMatchValidator });
   }
 
@@ -50,10 +50,10 @@ export class RegisterComponent {
       this.errorMessage = null;
 
       // Extraer datos del formulario
-      const { nick, email, password } = this.registerForm.value;
+      const { nick, email, password, precio_max } = this.registerForm.value;
 
-      // Usar el método de registro
-      this.authService.register(nick, email, password)
+      // Usar el método de registro incluyendo precio_max
+      this.authService.register(nick, email, password, precio_max)
         .subscribe({
           next: (response) => {
             this.isLoading = false;

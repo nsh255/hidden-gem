@@ -65,6 +65,26 @@
         </div>
       </div>
       
+      <!-- Nuevo campo para precio máximo -->
+      <div class="form-group">
+        <label for="precio_max">Precio máximo a pagar por un juego ($)</label>
+        <input 
+          type="number" 
+          id="precio_max" 
+          formControlName="precio_max" 
+          placeholder="Ej: 20.00"
+          class="glass-input"
+          min="0"
+          max="100"
+          step="5"
+        >
+        <div *ngIf="registerForm.get('precio_max')?.invalid && registerForm.get('precio_max')?.touched" class="error-message">
+          <span *ngIf="registerForm.get('precio_max')?.errors?.['required']">Debes indicar un precio máximo</span>
+          <span *ngIf="registerForm.get('precio_max')?.errors?.['min']">El precio no puede ser negativo</span>
+          <span *ngIf="registerForm.get('precio_max')?.errors?.['max']">El precio máximo no puede superar los $100</span>
+        </div>
+      </div>
+      
       <div *ngIf="errorMessage" class="error-alert">
         {{ errorMessage }}
       </div>

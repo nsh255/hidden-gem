@@ -26,7 +26,7 @@
           <h1 class="detail-title">{{ game.name }}</h1>
           <div class="game-meta">
             <span class="release-date">Lanzado: {{ game.releaseDate | date:'dd/MM/yyyy' }}</span>
-            <span class="game-rating" *ngIf="game.rating > 0">{{ game.rating }}</span>
+            <span class="game-rating" *ngIf="game.rating && game.rating !== 'N/A'">{{ game.rating }}</span>
           </div>
         </div>
         <div class="game-actions">

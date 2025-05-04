@@ -75,13 +75,15 @@ export class AuthService {
    * @param nombre Nombre de usuario (nick)
    * @param email Email del usuario
    * @param password Contraseña del usuario
+   * @param precio_max Precio máximo a pagar por un juego
    * @returns Observable con la respuesta de autenticación
    */
-  register(nombre: string, email: string, password: string): Observable<AuthResponse> {
+  register(nombre: string, email: string, password: string, precio_max: number = 20.0): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/auth/register', {
       nick: nombre,
       email: email,
-      password: password
+      password: password,
+      precio_max: precio_max
     }).pipe(
       tap(response => {
         // Guardar el token JWT en localStorage
