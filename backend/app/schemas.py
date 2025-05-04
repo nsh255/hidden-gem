@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, validator
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 
 # Esquemas para usuarios
 class UsuarioBase(BaseModel):
@@ -86,3 +87,59 @@ class AuthResponse(BaseModel):
     token: str
     token_type: str
     user: Dict[str, Any]
+
+# Esquemas para cambio de contraseña
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+# Esquema para reseteo de contraseña
+class PasswordReset(BaseModel):
+    token: str
+    new_password: str
+
+# Esquema para email
+class EmailSchema(BaseModel):
+    email: EmailStr
+
+# Esquema para actualización de usuario
+class UsuarioUpdate(BaseModel):
+    nick: Optional[str] = None
+    email: Optional[EmailStr] = None
+    precio_max: Optional[float] = None
+
+# Esquema para creación de reseña de juego
+class GameReviewCreate(BaseModel):
+    rating: float
+    content: str
+
+# Esquema para reseña de juego
+class GameReview(BaseModel):
+    id: int
+    user_id: int
+    user_name: str
+    game_id: int
+    rating: float
+    content: str
+    created_at: str
+
+# Esquemas para reseñas de juegos
+class ReviewBase(BaseModel):
+    """Esquema base para reseñas de juegos"""
+    rating: float = Field(..., ge=1.0, le=5.0, description="Puntuación del juego (1-5)")
+    content: str = Field(..., min_length=3, max_length=1000, description="Contenido de la reseña")
+
+class ReviewCreate(ReviewBase):
+    """Esquema para crear una nueva reseña"""
+    pass
+
+class Review(ReviewBase):
+    """Esquema para mostrar reseñas"""
+    id: int
+    user_id: int
+    user_name: str
+    game_id: int
+
+    created_at: datetime
+    class Config:
+        from_attributes = True  # antes era orm_mode = True

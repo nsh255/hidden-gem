@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from jose import jwt
@@ -186,3 +186,117 @@ def register(
             "email": db_user.email
         }
     }
+
+@router.post("/verify-token", response_model=dict)
+def verify_token(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login"))):
+    """
+    Verifica si un token JWT es válido.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return {"valid": True}
+    except:
+        return {"valid": False}
+
+@router.post("/change-password", status_code=status.HTTP_200_OK)
+def change_password(
+    data: schemas.PasswordChange,
+    token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login")),
+    db: Session = Depends(get_db)
+):
+    """
+    Cambia la contraseña del usuario autenticado.
+    """
+    try:
+        # Decodificar el token para obtener el ID del usuario
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Token inválido")
+        
+        # Obtener usuario
+        user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        # Verificar la contraseña actual
+        if not verify_password(data.current_password, user.contraseña):
+            raise HTTPException(status_code=400, detail="Contraseña actual incorrecta")
+        
+        # Cambiar la contraseña
+        user.contraseña = get_password_hash(data.new_password)
+        db.commit()
+        
+        return {"message": "Contraseña actualizada con éxito"}
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")
+
+@router.post("/request-password-reset", status_code=status.HTTP_200_OK)
+def request_password_reset(data: schemas.EmailSchema, db: Session = Depends(get_db)):
+    """
+    Solicita un restablecimiento de contraseña enviando un email con un token.
+    En una implementación real, se enviaría un email con un token.
+    """
+    # Verificar si el usuario existe
+    user = db.query(models.Usuario).filter(models.Usuario.email == data.email).first()
+    if not user:
+        # Por seguridad, no revelar si el email existe o no
+        return {"message": "Si el email existe, se ha enviado un enlace para restablecer la contraseña"}
+    
+    # En una implementación real, aquí se generaría un token único
+    # y se enviaría un email al usuario con un enlace para restablecer la contraseña
+    
+    # Para simular el proceso, simplemente devolvemos un mensaje de éxito
+    return {"message": "Si el email existe, se ha enviado un enlace para restablecer la contraseña"}
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+def reset_password(data: schemas.PasswordReset, db: Session = Depends(get_db)):
+    """
+    Restablece la contraseña utilizando un token de restablecimiento.
+    En una implementación real, se verificaría el token.
+    """
+    # En una implementación real, aquí se verificaría el token
+    # y se identificaría al usuario asociado
+    
+    # Para simular, simplemente devolvemos un mensaje de éxito
+    return {"message": "Contraseña restablecida con éxito"}
+
+@router.post("/logout", status_code=status.HTTP_200_OK)
+def logout():
+    """
+    Cierra la sesión del usuario.
+    En un sistema real con tokens persistentes, se invalidaría el token.
+    Como JWT es stateless, este endpoint es más simbólico.
+    """
+    # En una implementación con lista negra de tokens,
+    # aquí se añadiría el token a una lista negra
+    
+    return {"message": "Sesión cerrada con éxito"}
+
+@router.post("/refresh-token", status_code=status.HTTP_200_OK)
+def refresh_token(token: str = Depends(OAuth2PasswordBearer(tokenUrl="auth/login"))):
+    """
+    Refresca un token JWT, extendiendo su tiempo de validez.
+    """
+    try:
+        # Decodificar el token actual
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
+        # Eliminar la fecha de expiración del payload
+        exp = payload.pop("exp", None)
+        
+        # Crear un nuevo token con los mismos datos pero nueva expiración
+        new_token = create_access_token(data=payload)
+        
+        return {"token": new_token}
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")
+
+@router.get("/check-email", status_code=status.HTTP_200_OK)
+def check_email(email: str, db: Session = Depends(get_db)):
+    """
+    Verifica si un email ya está registrado.
+    """
+    user = db.query(models.Usuario).filter(models.Usuario.email == email).first()
+    return {"exists": user is not None}

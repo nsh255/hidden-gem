@@ -5,12 +5,14 @@ import { UserService } from '../../services/user.service';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-// Interfaz para el juego favorito
+// Actualizada interfaz para el juego favorito para que coincida con el backend
 interface FavoriteGame {
   id: number;
-  name: string;
-  imageUrl: string;
-  genres: string[];
+  nombre: string;  // Cambiado de name a nombre
+  imagen: string;  // Cambiado de imageUrl a imagen
+  generos: string[];  // Asumimos que es un array de strings, como se devuelve del backend
+  descripcion?: string;
+  tags?: string[];
 }
 
 @Component({
@@ -39,7 +41,7 @@ export class FavoritesComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = null;
 
-    // Llamamos al nuevo método getFavorites para obtener los favoritos con datos completos de RAWG
+    // Llamamos al nuevo método getFavorites para obtener los favoritos con datos completos
     this.userService.getFavorites()
       .pipe(
         catchError(error => {
@@ -67,7 +69,7 @@ export class FavoritesComponent implements OnInit {
     // Marcar el juego como "eliminando"
     this.isRemoving[gameId] = true;
 
-    // Usar el nuevo método del servicio para eliminar de favoritos
+    // Usar el método del servicio para eliminar de favoritos
     this.userService.removeFavorite(gameId)
       .pipe(
         catchError(error => {

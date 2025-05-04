@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -54,10 +54,23 @@ export class UserService {
    */
   checkIfGameIsFavorite(gameId: number): Observable<boolean> {
     const userId = this.authService.getCurrentUserId();
-    // Esta funcionalidad parece que no existe, tendríamos que implementarla comparando
-    // con la lista completa de favoritos
-    return this.getFavoriteGames().pipe(
-      map(favorites => favorites.some(fav => fav.id === gameId))
+    
+    // Si no hay usuario autenticado, no puede ser favorito
+    if (!userId) {
+      return of(false);
+    }
+    
+    // Implementación mejorada: hacemos una petición específica para verificar si es favorito
+    return this.http.get<boolean>(`/api/favorite-games/check/${userId}/${gameId}`).pipe(
+      catchError(error => {
+        console.error('Error al verificar estado de favorito:', error);
+        
+        // Si hay error (como que el endpoint no existe), intentamos con el método alternativo
+        return this.getFavoriteGames().pipe(
+          map(favorites => favorites.some(fav => fav.id === gameId)),
+          catchError(() => of(false))
+        );
+      })
     );
   }
 

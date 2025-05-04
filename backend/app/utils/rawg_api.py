@@ -1,142 +1,237 @@
 import requests
 import random
-from ..config import settings
+import time
+import os
+from typing import List, Dict, Any, Optional
 import logging
 
-logger = logging.getLogger(__name__)
-
-class RawgAPI:
-    BASE_URL = "https://api.rawg.io/api"
-    
+class RawgApi:
     def __init__(self):
-        self.api_key = settings.RAWG_API_KEY
-        if not self.api_key:
-            logger.warning("RAWG API key not set. Set RAWG_API_KEY in .env file.")
-    
-    def get_game(self, game_id):
-        """Get a game by ID from RAWG API"""
-        url = f"{self.BASE_URL}/games/{game_id}"
-        params = {'key': self.api_key}
+        # Obtener la clave API desde las variables de entorno o usar una predeterminada
+        self.api_key = os.environ.get("RAWG_API_KEY", "your_default_api_key")
+        self.base_url = "https://api.rawg.io/api"
         
-        try:
-            response = requests.get(url, params=params)
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            logger.error(f"Error fetching game from RAWG: {e}")
-            return None
-    
-    def search_games(self, query, page=1, page_size=20):
-        """Search for games by name"""
-        url = f"{self.BASE_URL}/games"
-        params = {
-            'key': self.api_key,
-            'search': query,
-            'page': page,
-            'page_size': page_size
-        }
-        
-        try:
-            response = requests.get(url, params=params)
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            logger.error(f"Error searching games from RAWG: {e}")
-            return None
-
-    def get_trending_games(self, page=1, page_size=20, max_pages=1):
+    def get_games(self, page: int = 1, page_size: int = 20) -> Optional[Dict[str, Any]]:
         """
-        Get popular or trending games
-        
-        Args:
-            page: Starting page number
-            page_size: Number of games per page
-            max_pages: Number of pages to retrieve (for collecting more games)
-        
-        Returns:
-            Dictionary with trending games data, merged from multiple pages if max_pages > 1
+        Obtiene una lista paginada de juegos.
         """
-        all_results = []
-        
-        for current_page in range(page, page + max_pages):
-            url = f"{self.BASE_URL}/games"
+        try:
+            url = f"{self.base_url}/games"
             params = {
-                'key': self.api_key,
-                'ordering': '-added',  # Order by popularity
-                'page': current_page,
-                'page_size': page_size
+                "key": self.api_key,
+                "page": page,
+                "page_size": page_size
             }
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f"Error al obtener juegos: {str(e)}")
+            return None
+    
+    def search_games(self, query: str, page: int = 1, page_size: int = 20) -> Optional[Dict[str, Any]]:
+        """
+        Busca juegos por nombre.
+        """
+        try:
+            url = f"{self.base_url}/games"
+            params = {
+                "key": self.api_key,
+                "search": query,
+                "page": page,
+                "page_size": page_size
+            }
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f"Error al buscar juegos: {str(e)}")
+            return None
+    
+    def get_game(self, game_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene los detalles de un juego específico.
+        """
+        try:
+            url = f"{self.base_url}/games/{game_id}"
+            params = {"key": self.api_key}
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f"Error al obtener detalles del juego: {str(e)}")
+            return None
+    
+    def get_game_screenshots(self, game_id: int) -> Optional[List[Dict[str, Any]]]:
+        """
+        Obtiene las capturas de pantalla de un juego específico.
+        """
+        try:
+            url = f"{self.base_url}/games/{game_id}/screenshots"
+            params = {"key": self.api_key}
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            return data.get("results", [])
+        except Exception as e:
+            logging.error(f"Error al obtener capturas de pantalla: {str(e)}")
+            return None
+    
+    def get_trending_games(self, page: int = 1, page_size: int = 20, max_pages: int = 1) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene juegos en tendencia.
+        """
+        try:
+            all_results = []
+            total_count = 0
+            next_page = None
             
-            try:
+            for current_page in range(page, page + max_pages):
+                url = f"{self.base_url}/games"
+                params = {
+                    "key": self.api_key,
+                    "ordering": "-added",  # Ordenar por más recientemente añadidos
+                    "page": current_page,
+                    "page_size": page_size
+                }
                 response = requests.get(url, params=params)
                 response.raise_for_status()
                 data = response.json()
                 
-                if 'results' in data:
-                    all_results.extend(data['results'])
-                    
-                # If we've reached the last page, break the loop
-                if current_page >= data.get('count', 0) // page_size:
+                all_results.extend(data.get("results", []))
+                
+                if current_page == page:  # Solo en la primera página
+                    total_count = data.get("count", 0)
+                    next_page = data.get("next")
+                
+                if not data.get("next"):
                     break
                     
-            except requests.RequestException as e:
-                logger.error(f"Error fetching trending games from RAWG: {e}")
-                # Return what we have so far if there's an error
-                if all_results:
-                    return {"results": all_results, "count": len(all_results)}
-                return None
-        
-        return {"results": all_results, "count": len(all_results)}
+                # Esperar un poco para no sobrecargar la API
+                time.sleep(0.2)
+            
+            return {
+                "count": total_count,
+                "next": next_page,
+                "results": all_results
+            }
+        except Exception as e:
+            logging.error(f"Error al obtener juegos en tendencia: {str(e)}")
+            return None
     
-    def get_random_games(self, count=10):
+    def get_random_games(self, count: int = 10) -> Optional[Dict[str, Any]]:
         """
-        Get random games from RAWG API
-        
-        This method fetches games from random pages to provide variety.
-        
-        Args:
-            count: Number of random games to retrieve
-        
-        Returns:
-            Dictionary with random games data
+        Obtiene una selección aleatoria de juegos.
         """
-        # Fetch approximate count of all games first
         try:
-            url = f"{self.BASE_URL}/games"
-            params = {'key': self.api_key, 'page_size': 1}
+            # Obtener juegos de páginas aleatorias
+            max_page = 100  # Asumir que hay al menos 100 páginas
+            games = []
             
-            response = requests.get(url, params=params)
-            response.raise_for_status()
-            data = response.json()
+            # Hacer varias solicitudes para obtener diferentes juegos
+            attempts = min(5, (count // 5) + 1)  # Limitar el número de intentos
             
-            total_games = data.get('count', 10000)  # Use 10000 as fallback
-            max_page = min(500, total_games // 20)  # RAWG API limits pages to 500
-            
-            # Select random pages to get games
-            random_pages = [random.randint(1, max_page) for _ in range(count // 20 + 1)]
-            all_results = []
-            
-            for page in random_pages:
+            for _ in range(attempts):
+                random_page = random.randint(1, max_page)
+                url = f"{self.base_url}/games"
                 params = {
-                    'key': self.api_key,
-                    'page': page,
-                    'page_size': 20
+                    "key": self.api_key,
+                    "page": random_page,
+                    "page_size": 20
                 }
-                
                 response = requests.get(url, params=params)
                 response.raise_for_status()
-                page_data = response.json()
+                data = response.json()
                 
-                if 'results' in page_data:
-                    all_results.extend(page_data['results'])
+                if data.get("results"):
+                    games.extend(data.get("results", []))
+                
+                # Esperar un poco para no sobrecargar la API
+                time.sleep(0.2)
+                
+                if len(games) >= count:
+                    break
             
-            # Shuffle and limit to requested count
-            random.shuffle(all_results)
-            return {"results": all_results[:count], "count": min(count, len(all_results))}
+            # Mezclar y limitar al número solicitado
+            random.shuffle(games)
+            games = games[:count]
             
-        except requests.RequestException as e:
-            logger.error(f"Error fetching random games from RAWG: {e}")
+            return {
+                "count": len(games),
+                "results": games
+            }
+        except Exception as e:
+            logging.error(f"Error al obtener juegos aleatorios: {str(e)}")
+            return None
+    
+    def get_games_by_genre(self, genre_id: int, page: int = 1, page_size: int = 20) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene juegos filtrados por género.
+        """
+        try:
+            url = f"{self.base_url}/games"
+            params = {
+                "key": self.api_key,
+                "genres": genre_id,
+                "page": page,
+                "page_size": page_size
+            }
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f"Error al obtener juegos por género: {str(e)}")
+            return None
+    
+    def get_games_by_genres(self, genre_slugs: List[str], page: int = 1, page_size: int = 20) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene juegos filtrados por varios géneros (usando slugs).
+        """
+        try:
+            url = f"{self.base_url}/games"
+            params = {
+                "key": self.api_key,
+                "genres": ",".join(genre_slugs),
+                "page": page,
+                "page_size": page_size
+            }
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f"Error al obtener juegos por géneros: {str(e)}")
+            return None
+    
+    def get_games_with_filters(self, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene juegos con filtros personalizados.
+        """
+        try:
+            url = f"{self.base_url}/games"
+            # Agregar la clave API a los parámetros
+            filter_params = params.copy()
+            filter_params["key"] = self.api_key
+            
+            response = requests.get(url, params=filter_params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f"Error al obtener juegos filtrados: {str(e)}")
+            return None
+    
+    def get_genres(self) -> Optional[Dict[str, Any]]:
+        """
+        Obtiene la lista de géneros disponibles.
+        """
+        try:
+            url = f"{self.base_url}/genres"
+            params = {"key": self.api_key}
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logging.error(f"Error al obtener géneros: {str(e)}")
             return None
 
-# Crear una instancia para importar en otros módulos
-rawg_api = RawgAPI()
+# Crear una instancia para usar en toda la aplicación
+rawg_api = RawgApi()

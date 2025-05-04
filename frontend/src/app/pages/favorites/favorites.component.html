@@ -26,20 +26,20 @@
     </div>
   </div>
 
-  <!-- Lista de juegos favoritos -->
+  <!-- Lista de juegos favoritos (actualizada para usar los nombres de propiedades correctos) -->
   <div class="favorites-grid" *ngIf="!isLoading && favoriteGames.length > 0">
     <div class="glass-card favorite-card" *ngFor="let game of favoriteGames" (click)="navigateToGameDetail(game.id)">
       <div class="favorite-image-container glass-image-container">
-        <img [src]="game.imageUrl" [alt]="game.name" class="favorite-image">
+        <img [src]="game.imagen" [alt]="game.nombre" class="favorite-image">
         <button class="btn btn-secondary btn-remove" [class.removing]="isRemoving[game.id]" (click)="removeFromFavorites(game.id, $event)" [disabled]="isRemoving[game.id]">
           <span *ngIf="!isRemoving[game.id]">✖</span>
           <span *ngIf="isRemoving[game.id]" class="removing-loader"></span>
         </button>
       </div>
       <div class="favorite-info">
-        <h3 class="favorite-title">{{ game.name }}</h3>
+        <h3 class="favorite-title">{{ game.nombre }}</h3>
         <div class="favorite-genres">
-          <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 2)">{{ genre }}</span>
+          <span class="genre-tag" *ngFor="let genre of game.generos.slice(0, 2)">{{ genre }}</span>
         </div>
       </div>
     </div>

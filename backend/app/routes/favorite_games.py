@@ -90,3 +90,34 @@ def get_user_favorites(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
     return user.juegos_favoritos
+
+@router.get("/check/{user_id}/{game_id}", response_model=bool)
+def check_game_is_favorite(user_id: int, game_id: int, db: Session = Depends(get_db)):
+    """
+    Verifica si un juego específico está entre los favoritos de un usuario.
+    
+    Args:
+        user_id: ID del usuario
+        game_id: ID del juego a verificar
+        
+    Returns:
+        True si el juego está en favoritos, False en caso contrario
+    """
+    # Verificar si el usuario existe
+    user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Verificar si el juego existe en la base de datos
+    game = db.query(models.JuegosFavoritosDeUsuarioQueProvienenDeRawg).filter(
+        models.JuegosFavoritosDeUsuarioQueProvienenDeRawg.id == game_id
+    ).first()
+    
+    if not game:
+        # Si el juego no existe en la base de datos, definitivamente no es favorito
+        return False
+    
+    # Verificar si el juego está en la lista de favoritos del usuario
+    is_favorite = game in user.juegos_favoritos
+    
+    return is_favorite

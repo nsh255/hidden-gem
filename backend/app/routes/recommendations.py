@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any
 from ..database import get_db
 from .. import models, schemas
 from ..utils.recommendation_engine import recommendation_engine
+from ..utils.rawg_api import rawg_api  # Añadida importación faltante
 
 router = APIRouter(
     prefix="/recommendations",
@@ -189,3 +190,67 @@ def get_game_recommendations(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generando recomendaciones: {str(e)}")
+
+@router.get("/similar-to/{game_id}", response_model=List[schemas.JuegoRecomendado])
+def get_recommendations_similar_to_game(
+    game_id: int,
+    limit: int = Query(5, ge=1, le=20, description="Número máximo de recomendaciones"),
+    db: Session = Depends(get_db)
+):
+    """
+    Genera recomendaciones de juegos similares a un juego específico.
+    """
+    try:
+        # Obtener información del juego
+        game_info = rawg_api.get_game(game_id)
+        if not game_info:
+            raise HTTPException(status_code=404, detail="Juego no encontrado")
+        
+        # Extraer géneros
+        genres = [genre["name"] for genre in game_info.get("genres", [])]
+        
+        if not genres:
+            return []
+        
+        # Usar el endpoint existente de recomendaciones por géneros
+        return get_recommendations_by_genres(genres=genres, limit=limit, db=db)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Error al obtener recomendaciones: {str(e)}")
+
+@router.get("/trending", response_model=List[schemas.JuegoRecomendado])
+def get_trending_recommendations(
+    limit: int = Query(10, ge=1, le=50, description="Número máximo de recomendaciones"),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtiene juegos en tendencia como recomendaciones.
+    """
+    try:
+        # Obtener juegos en tendencia desde RAWG
+        trending_games = rawg_api.get_trending_games(1, limit)
+        
+        if not trending_games or "results" not in trending_games:
+            return []
+        
+        # Convertir al formato de recomendaciones
+        recommendations = []
+        for game in trending_games.get("results", [])[:limit]:
+            # Extraer géneros
+            genres = [genre["name"] for genre in game.get("genres", [])]
+            
+            # Crear objeto de recomendación
+            rec = {
+                "id": game["id"],
+                "nombre": game["name"],
+                "generos": genres,
+                "precio": round(15 + game.get("rating", 0) * 2, 2),  # Precio simulado
+                "descripcion": game.get("description", ""),
+                "imagen_principal": game.get("background_image", ""),
+                "puntuacion": min(1.0, game.get("rating", 0) / 5)  # Convertir a escala 0-1
+            }
+            
+            recommendations.append(rec)
+        
+        return recommendations
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Error al obtener tendencias: {str(e)}")  # Corregido paréntesis

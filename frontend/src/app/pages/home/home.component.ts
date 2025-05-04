@@ -1,19 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { GameService } from '../../services/game.service';
+import { GameService, GameSummary } from '../../services/game.service';
 import { RecommendationService, RecommendedGame } from '../../services/recommendation.service';
-import { catchError } from 'rxjs/operators';
+import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-// Interfaz para los juegos (preliminar)
-interface GamePreview {
-  id: number;
-  name: string;
-  imageUrl: string;
-  genres: string[];
-  price: number;
-  rating: string;
+// Interfaz para los datos crudos de juegos que vienen de la API
+interface RawGameData {
+  id?: number;
+  name?: string;
+  background_image?: string;
+  released?: string;
+  rating?: number;
+  genres?: Array<{id: number, name: string}>;
+  price?: number;
+  [key: string]: any; // Para cualquier otra propiedad que pueda tener
 }
 
 @Component({
@@ -24,82 +26,18 @@ interface GamePreview {
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit {
-  // Datos de muestra para juegos recomendados
-  recommendedGames: GamePreview[] = [
-    {
-      id: 1,
-      name: 'Hollow Knight',
-      imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/367520/header.jpg',
-      genres: ['Metroidvania', 'Souls-like', 'Plataformas'],
-      price: 14.99,
-      rating: '9.5'
-    },
-    {
-      id: 2,
-      name: 'Stardew Valley',
-      imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/413150/header.jpg',
-      genres: ['Simulación', 'RPG', 'Pixel Art'],
-      price: 14.99,
-      rating: '9.8'
-    },
-    {
-      id: 3,
-      name: 'Hades',
-      imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/1145360/header.jpg',
-      genres: ['Roguelike', 'Acción', 'Dungeon Crawler'],
-      price: 24.99,
-      rating: '9.7'
-    },
-    {
-      id: 4,
-      name: 'Cuphead',
-      imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/268910/header.jpg',
-      genres: ['Plataformas', 'Difícil', 'Cooperativo'],
-      price: 19.99,
-      rating: '9.3'
-    }
-  ];
+  // Reemplazamos los arreglos hardcodeados con arreglos vacíos
+  recommendedGames: GameSummary[] = [];
+  popularGames: GameSummary[] = [];
 
-  // Datos de muestra para juegos populares
-  popularGames: GamePreview[] = [
-    {
-      id: 5,
-      name: 'Celeste',
-      imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/504230/header.jpg',
-      genres: ['Plataformas', 'Pixel Art', 'Difícil'],
-      price: 19.99,
-      rating: '9.6'
-    },
-    {
-      id: 6,
-      name: 'Dead Cells',
-      imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/588650/header.jpg',
-      genres: ['Roguelike', 'Metroidvania', 'Acción'],
-      price: 24.99,
-      rating: '9.4'
-    },
-    {
-      id: 7,
-      name: 'Undertale',
-      imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/391540/header.jpg',
-      genres: ['RPG', 'Pixel Art', 'Historia'],
-      price: 9.99,
-      rating: '9.7'
-    },
-    {
-      id: 8,
-      name: 'Among Us',
-      imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/945360/header.jpg',
-      genres: ['Multijugador', 'Social', 'Deducción'],
-      price: 4.99,
-      rating: '9.2'
-    }
-  ];
-
-  // Nuevas propiedades para manejar las recomendaciones del API
+  // Propiedades para las recomendaciones de la API
   recommendedByGenres: RecommendedGame[] = [];
   isLoading: boolean = false;
+  isLoadingPopular: boolean = false;
+  isLoadingRecommended: boolean = false;
   errorMessage: string | null = null;
+  errorPopular: string | null = null;
+  errorRecommended: string | null = null;
 
   // Géneros predeterminados para las recomendaciones
   defaultGenres: string[] = ['Action', 'RPG'];
@@ -111,13 +49,10 @@ export class HomeComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Cargar datos de muestra
+    // Cargar datos reales desde los servicios
     this.loadRecommendedGames();
     this.loadPopularGames();
     
-    // Cargar recomendaciones del API (comentado para no realizar peticiones reales por ahora)
-    // this.loadRecommendationsByGenres(['Platformer', 'Metroidvania'], 20);
-
     // Cargar recomendaciones por géneros desde la API
     this.loadRecommendationsByGenres(this.defaultGenres);
   }
@@ -132,13 +67,14 @@ export class HomeComponent implements OnInit {
         catchError(error => {
           this.errorMessage = 'Error al cargar recomendaciones. Por favor, inténtalo de nuevo.';
           console.error('Error cargando recomendaciones:', error);
-          this.isLoading = false;
           return of([]);
+        }),
+        finalize(() => {
+          this.isLoading = false;
         })
       )
       .subscribe(games => {
         this.recommendedByGenres = games;
-        this.isLoading = false;
       });
   }
 
@@ -150,16 +86,74 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/game', gameId]);
   }
 
-  // Métodos para cargar los juegos de muestra
-  private loadRecommendedGames(): void {
-    // Aquí se llamará al servicio de recomendaciones
-    // Por ahora usamos datos de muestra
-    console.log('Cargando juegos recomendados');
+  // Método para cargar juegos recomendados
+  loadRecommendedGames(): void {
+    this.isLoadingRecommended = true;
+    this.errorRecommended = null;
+    
+    // Obtener juegos aleatorios como recomendados
+    this.gameService.getRandomGames(4)
+      .pipe(
+        catchError(error => {
+          this.errorRecommended = 'Error al cargar juegos recomendados.';
+          console.error('Error cargando juegos recomendados:', error);
+          return of({ count: 0, results: [] });
+        }),
+        finalize(() => {
+          this.isLoadingRecommended = false;
+        })
+      )
+      .subscribe(response => {
+        if (response && response.results) {
+          // Mapear los resultados al formato esperado por la UI
+          this.recommendedGames = response.results.map((game: RawGameData) => ({
+            id: game.id || 0,
+            name: game.name || 'Juego sin nombre',
+            background_image: game.background_image || 'assets/images/placeholder.jpg',
+            released: game.released || '',
+            rating: typeof game.rating === 'number' ? game.rating : 0,
+            genres: Array.isArray(game.genres) ? game.genres : [],
+            price: typeof game.price === 'number' ? game.price : 19.99
+          }));
+        } else {
+          this.recommendedGames = [];
+          this.errorRecommended = 'No se pudieron cargar juegos recomendados.';
+        }
+      });
   }
 
-  private loadPopularGames(): void {
-    // Aquí se llamará al servicio para obtener juegos populares
-    // Por ahora usamos datos de muestra
-    console.log('Cargando juegos populares');
+  loadPopularGames(): void {
+    this.isLoadingPopular = true;
+    this.errorPopular = null;
+    
+    // Obtener juegos en tendencia como populares
+    this.gameService.getTrendingGames(1, 4)
+      .pipe(
+        catchError(error => {
+          this.errorPopular = 'Error al cargar juegos populares.';
+          console.error('Error cargando juegos populares:', error);
+          return of({ count: 0, results: [] });
+        }),
+        finalize(() => {
+          this.isLoadingPopular = false;
+        })
+      )
+      .subscribe(response => {
+        if (response && response.results) {
+          // Mapear los resultados al formato esperado por la UI
+          this.popularGames = response.results.map((game: RawGameData) => ({
+            id: game.id || 0,
+            name: game.name || 'Juego sin nombre',
+            background_image: game.background_image || 'assets/images/placeholder.jpg',
+            released: game.released || '',
+            rating: typeof game.rating === 'number' ? game.rating : 0,
+            genres: Array.isArray(game.genres) ? game.genres : [],
+            price: typeof game.price === 'number' ? game.price : 19.99
+          }));
+        } else {
+          this.popularGames = [];
+          this.errorPopular = 'No se pudieron cargar juegos populares.';
+        }
+      });
   }
 }

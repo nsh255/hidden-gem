@@ -4,6 +4,9 @@ from typing import List
 from ..database import get_db
 from .. import models, schemas
 from passlib.context import CryptContext
+from jose import jwt
+from fastapi.security import OAuth2PasswordBearer
+from ..config import settings
 
 router = APIRouter(
     prefix="/users",
@@ -14,6 +17,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_password_hash(password):
     return pwd_context.hash(password)
+
+# Configuración JWT (importada desde auth.py)
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = "HS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 @router.post("/", response_model=schemas.Usuario, status_code=status.HTTP_201_CREATED)
 def create_user(user: schemas.UsuarioCreate, db: Session = Depends(get_db)):
@@ -77,3 +85,60 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.delete(db_user)
     db.commit()
     return None
+
+@router.get("/me", response_model=schemas.Usuario)
+def read_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """
+    Obtiene los datos del usuario autenticado actualmente.
+    """
+    try:
+        # Decodificar el token para obtener el ID del usuario
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Token inválido")
+        
+        # Obtener usuario
+        user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        return user
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")
+
+@router.patch("/me", response_model=schemas.Usuario)
+def update_current_user(
+    user_data: schemas.UsuarioUpdate,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    """
+    Actualiza los datos del usuario autenticado actualmente.
+    """
+    try:
+        # Decodificar el token para obtener el ID del usuario
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Token inválido")
+        
+        # Obtener usuario
+        user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        # Actualizar campos editables
+        user_data_dict = user_data.dict(exclude_unset=True)
+        for key, value in user_data_dict.items():
+            if key != "contraseña":  # Excluir contraseña
+                setattr(user, key, value)
+        
+        db.commit()
+        db.refresh(user)
+        
+        return user
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")

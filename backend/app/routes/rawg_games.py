@@ -133,3 +133,16 @@ def get_random_games(
     if not result:
         raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
     return result
+
+@router.get("/game/{game_id}/screenshots", response_model=List[dict])
+def get_game_screenshots(game_id: int):
+    """
+    Obtiene las capturas de pantalla de un juego específico.
+    """
+    try:
+        screenshots = rawg_api.get_game_screenshots(game_id)
+        if not screenshots:
+            return []
+        return screenshots
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Error al obtener capturas: {str(e)}")

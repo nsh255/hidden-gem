@@ -10,17 +10,29 @@
       <p class="section-subtitle">Basado en tus preferencias</p>
     </div>
 
-    <div class="game-grid">
+    <!-- Indicador de carga -->
+    <div class="loading-container" *ngIf="isLoadingRecommended">
+      <div class="loader"></div>
+      <p>Cargando juegos recomendados...</p>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div class="error-message glass-container" *ngIf="errorRecommended">
+      <p>{{ errorRecommended }}</p>
+      <button class="btn btn-primary" (click)="loadRecommendedGames()">Reintentar</button>
+    </div>
+
+    <div class="game-grid" *ngIf="!isLoadingRecommended && recommendedGames.length > 0">
       <!-- Iteramos sobre los juegos recomendados -->
       <div class="glass-card game-card" *ngFor="let game of recommendedGames">
         <div class="game-image-container glass-image-container">
-          <img [src]="game.imageUrl" [alt]="game.name" class="game-image">
-          <div class="game-card-rating">{{game.rating}}</div>
+          <img [src]="game.background_image" [alt]="game.name" class="game-image">
+          <div class="game-card-rating">{{game.rating.toFixed(1)}}</div>
         </div>
         <div class="game-info game-card-body">
           <h3 class="game-title game-card-title">{{game.name}}</h3>
           <div class="game-genres">
-            <span class="genre-tag" *ngFor="let genre of game.genres">{{genre}}</span>
+            <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{genre.name}}</span>
           </div>
           <div class="game-price game-card-price">{{game.price | currency:'USD':'symbol':'1.2-2'}}</div>
           <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
@@ -76,17 +88,29 @@
       <p class="section-subtitle">Lo más jugado del momento</p>
     </div>
 
-    <div class="game-grid">
+    <!-- Indicador de carga -->
+    <div class="loading-container" *ngIf="isLoadingPopular">
+      <div class="loader"></div>
+      <p>Cargando juegos populares...</p>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div class="error-message glass-container" *ngIf="errorPopular">
+      <p>{{ errorPopular }}</p>
+      <button class="btn btn-primary" (click)="loadPopularGames()">Reintentar</button>
+    </div>
+
+    <div class="game-grid" *ngIf="!isLoadingPopular && popularGames.length > 0">
       <!-- Iteramos sobre los juegos populares -->
       <div class="glass-card game-card" *ngFor="let game of popularGames">
         <div class="game-image-container glass-image-container">
-          <img [src]="game.imageUrl" [alt]="game.name" class="game-image">
-          <div class="game-card-rating">{{game.rating}}</div>
+          <img [src]="game.background_image" [alt]="game.name" class="game-image">
+          <div class="game-card-rating">{{game.rating.toFixed(1)}}</div>
         </div>
         <div class="game-info game-card-body">
           <h3 class="game-title game-card-title">{{game.name}}</h3>
           <div class="game-genres">
-            <span class="genre-tag" *ngFor="let genre of game.genres">{{genre}}</span>
+            <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{genre.name}}</span>
           </div>
           <div class="game-price game-card-price">{{game.price | currency:'USD':'symbol':'1.2-2'}}</div>
           <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
