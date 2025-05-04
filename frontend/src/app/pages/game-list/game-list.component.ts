@@ -18,10 +18,13 @@ export class GameListComponent implements OnInit {
   isLoading: boolean = true;
   errorMessage: string | null = null;
   currentPage: number = 1;
-  pageSize: number = 12;
+  pageSize: number = 18; // Cambiado a 18 juegos por página
   totalGames: number = 0;
   hasNextPage: boolean = false;
   hasPreviousPage: boolean = false;
+  
+  // Añadir Math para poder usarlo en la plantilla
+  Math = Math;
   
   constructor(
     private gameService: GameService,

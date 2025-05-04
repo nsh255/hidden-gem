@@ -60,7 +60,7 @@
       <div class="glass-card game-card" *ngFor="let game of recommendedGames">
         <div class="game-image-container glass-image-container">
           <img [src]="game.background_image" [alt]="game.name" class="game-image">
-          <div class="game-card-rating">{{game.rating.toFixed(1)}}</div>
+          <span class="game-card-rating" *ngIf="game.rating > 0">{{ game.rating.toFixed(1) }}</span>
         </div>
         <div class="game-info game-card-body">
           <h3 class="game-title game-card-title">{{game.name}}</h3>
@@ -100,7 +100,7 @@
       <div class="glass-card game-card" *ngFor="let game of recommendedByGenres">
         <div class="game-image-container glass-image-container">
           <img [src]="game.imagen_principal" [alt]="game.nombre" class="game-image">
-          <div class="game-card-rating">{{ (game.puntuacion * 10).toFixed(1) }}</div>
+          <span class="game-card-rating" *ngIf="game.puntuacion > 0">{{ (game.puntuacion * 10).toFixed(1) }}</span>
         </div>
         <div class="game-info game-card-body">
           <h3 class="game-title game-card-title">{{ game.nombre }}</h3>
@@ -137,7 +137,7 @@
       <div class="glass-card game-card" *ngFor="let game of popularGames">
         <div class="game-image-container glass-image-container">
           <img [src]="game.background_image" [alt]="game.name" class="game-image">
-          <div class="game-card-rating">{{game.rating.toFixed(1)}}</div>
+          <span class="game-card-rating" *ngIf="game.rating > 0">{{ game.rating.toFixed(1) }}</span>
         </div>
         <div class="game-info game-card-body">
           <h3 class="game-title game-card-title">{{game.name}}</h3>
@@ -167,7 +167,7 @@
       <div class="glass-card game-card" *ngFor="let game of randomGames">
         <div class="game-image-container glass-image-container">
           <img [src]="game.background_image" [alt]="game.name" class="game-image">
-          <div class="game-card-rating">{{ game.rating.toFixed(1) }}</div>
+          <span class="game-card-rating" *ngIf="game.rating > 0">{{ game.rating.toFixed(1) }}</span>
         </div>
         <div class="game-info game-card-body">
           <h3 class="game-title game-card-title">{{ game.name }}</h3>

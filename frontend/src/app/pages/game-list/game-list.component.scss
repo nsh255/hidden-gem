@@ -1,0 +1,245 @@
+// ... existing code ...
+
+.compact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); // Reducido de 200px a 190px
+  gap: 18px; // Reducido de 20px a 18px
+  margin: 20px 0;
+}
+
+.compact-card {
+  display: flex;
+  flex-direction: column;
+  height: 260px; // Reducido de 280px a 260px
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+    
+    .game-image {
+      transform: scale(1.05);
+    }
+  }
+  
+  .game-image-container {
+    position: relative;
+    height: 130px; // Reducido de 140px a 130px
+    overflow: hidden;
+    border-radius: 8px 8px 0 0;
+  }
+  
+  .game-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .game-card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 40%);
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: 8px;
+  }
+  
+  .game-card-rating {
+    background: rgba(255, 215, 0, 0.9);
+    color: #000;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-weight: bold;
+    font-size: 0.8rem;
+  }
+  
+  .game-card-body {
+    padding: 10px; // Reducido de 12px a 10px
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  
+  .game-card-title {
+    font-size: 0.95rem; // Reducido de 1rem a 0.95rem
+    margin: 0 0 6px 0; // Reducido de 8px a 6px
+    line-height: 1.3;
+    max-height: 2.6rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  
+  .game-genres {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 6px; // Reducido de 8px a 6px
+    
+    .genre-tag {
+      font-size: 0.65rem; // Reducido de 0.7rem a 0.65rem
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px; // Reducido de 12px a 10px
+      padding: 2px 6px; // Reducido horizontal de 8px a 6px
+      margin-right: 4px; // Reducido de 5px a 4px
+      margin-bottom: 4px; // Reducido de 5px a 4px
+      white-space: nowrap;
+    }
+  }
+  
+  .game-card-price {
+    margin-top: auto;
+    font-weight: bold;
+    color: #4caf50;
+    
+    .free-tag {
+      background-color: #3d8b40;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+  }
+}
+
+// Estilos mejorados para la paginación
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 25px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  width: 100%;
+  max-width: 450px;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  background: #4caf50; /* Color de fondo verde más visible */
+  border: none;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  
+  &:hover:not([disabled]) {
+    background: #3d8b40; /* Verde más oscuro al hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  &:active:not([disabled]) {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #666; /* Gris más oscuro cuando está deshabilitado */
+  }
+  
+  .arrow-icon {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-top: 2px solid white;
+    border-right: 2px solid white;
+    
+    &.left {
+      transform: rotate(-135deg);
+      margin-right: 8px;
+    }
+    
+    &.right {
+      transform: rotate(45deg);
+      margin-left: 8px;
+    }
+  }
+}
+
+.prev-btn {
+  padding-left: 15px;
+}
+
+.next-btn {
+  padding-right: 15px;
+}
+
+.page-indicator {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: white;
+  background: rgba(0, 0, 0, 0.3); /* Fondo más oscuro para mejor contraste */
+  padding: 8px 15px;
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  
+  .current-page {
+    font-size: 1.1rem;
+    color: white; /* Texto blanco para mejor visibilidad */
+  }
+  
+  .page-divider {
+    margin: 0 8px;
+    opacity: 0.7;
+  }
+  
+  .total-pages {
+    opacity: 0.8;
+  }
+}
+
+// Media queries para dispositivos móviles
+@media (max-width: 768px) {
+  .compact-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); // Reducido de 150px a 140px
+    gap: 14px; // Reducido de 15px a 14px
+  }
+  
+  .compact-card {
+    height: 230px; // Reducido de 250px a 230px
+    
+    .game-image-container {
+      height: 110px; // Reducido de 120px a 110px
+    }
+    
+    .game-card-title {
+      font-size: 0.9rem;
+    }
+  }
+  
+  .pagination-controls {
+    padding: 12px 15px;
+  }
+  
+  .pagination-btn {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .page-indicator {
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
+}

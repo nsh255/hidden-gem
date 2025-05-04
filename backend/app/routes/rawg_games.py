@@ -27,8 +27,17 @@ def search_rawg_games(
     # Filtrar juegos con contenido sexual en el título o descripción
     sexual_keywords = [
         "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
-        "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", 
-        "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene"
+        "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", "ntr", 
+        "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene",
+        # Términos adicionales
+        "girlfriend", "boyfriend", "dating", "romance", "sexy", "hot",
+        "love", "kiss", "touching", "strip", "undress", "lingerie", "bra",
+        "underwear", "bikini", "swimsuit", "pleasure", "desire", "passion",
+        "flirt", "seduce", "lust", "fantasy", "waifu", "huniepop", "dream daddy",
+        "hatoful", "boob", "breast", "butt", "ass", "grope", "panty", "thong",
+        "dating sim", "visual novel", "relationship", "body", "naked", "shower",
+        "bath", "beach", "model", "pose", "tease", "tempt", "virgin", "virgin*",
+        "hookup", "affair", "50 shades", "topless", "onlyfans", "dress up"
     ]
     filtered_results = [
         game for game in result.get("results", [])
