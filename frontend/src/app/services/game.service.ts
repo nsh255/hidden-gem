@@ -52,6 +52,7 @@ export interface GameReview {
   providedIn: 'root'
 })
 export class GameService {
+  private apiUrl = '/api/games';
   
   constructor(private http: HttpClient) { }
   
@@ -199,12 +200,10 @@ export class GameService {
    * @param pageSize Tamaño de la página
    * @returns Observable con la lista de juegos en tendencia
    */
-  getTrendingGames(page: number = 1, pageSize: number = 20): Observable<any> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('page_size', pageSize.toString());
-    
-    return this.http.get<any>('/api/rawg/trending', { params });
+  getTrendingGames(page: number, pageSize: number): Observable<{ results: GameSummary[] }> {
+    return this.http.get<{ results: GameSummary[] }>(`${this.apiUrl}`, {
+      params: { page: page.toString(), page_size: pageSize.toString() },
+    });
   }
 
   /**
@@ -215,5 +214,17 @@ export class GameService {
   getRandomGames(count: number = 10): Observable<any> {
     const params = new HttpParams().set('count', count.toString());
     return this.http.get<any>('/api/rawg/random', { params });
+  }
+
+  /**
+   * Obtiene juegos aleatorios con paginación
+   * @param page Número de página
+   * @param pageSize Tamaño de la página
+   * @returns Observable con la lista de juegos aleatorios
+   */
+  getRandomGamesWithPage(page: number, pageSize: number): Observable<{ results: GameSummary[] }> {
+    return this.http.get<{ results: GameSummary[] }>(`${this.apiUrl}/filter`, {
+      params: { page: page.toString(), page_size: pageSize.toString(), sort_by: 'random' },
+    });
   }
 }

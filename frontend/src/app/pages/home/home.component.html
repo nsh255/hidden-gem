@@ -4,7 +4,7 @@
     <p class="gem-subtitle">Descubre joyas ocultas en el mundo de los videojuegos indies</p>
   </header>
 
-  <section class="content-section">
+  <section class="content-section" *ngIf="isAuthenticated">
     <div class="section-header">
       <h2 class="section-title">Juegos Recomendados</h2>
       <p class="section-subtitle">Basado en tus preferencias</p>
@@ -34,14 +34,13 @@
           <div class="game-genres">
             <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{genre.name}}</span>
           </div>
-          <div class="game-price game-card-price">{{game.price | currency:'USD':'symbol':'1.2-2'}}</div>
           <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="content-section">
+  <section class="content-section" *ngIf="isAuthenticated">
     <div class="section-header">
       <h2 class="section-title">Recomendados para ti</h2>
       <p class="section-subtitle">Basado en tus géneros favoritos: {{ defaultGenres.join(', ') }}</p>
@@ -75,7 +74,7 @@
           <div class="game-genres">
             <span class="genre-tag" *ngFor="let genre of game.generos.slice(0, 3)">{{ genre }}</span>
           </div>
-          <div class="game-price game-card-price">{{ game.precio | currency:'USD':'symbol':'1.2-2'}}</div>
+          <div class="game-price game-card-price">{{ formatPrice(game.precio) }}</div>
           <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
         </div>
       </div>
@@ -112,8 +111,41 @@
           <div class="game-genres">
             <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{genre.name}}</span>
           </div>
-          <div class="game-price game-card-price">{{game.price | currency:'USD':'symbol':'1.2-2'}}</div>
+          <div class="game-price game-card-price" *ngIf="formatPrice(game.price, false)">
+            {{ formatPrice(game.price, false) }}
+          </div>
           <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="section-header">
+      <h2 class="section-title">Descubre Juegos Aleatorios</h2>
+      <p class="section-subtitle">Explora juegos seleccionados al azar</p>
+    </div>
+
+    <!-- Indicador de carga -->
+    <div class="loading-container" *ngIf="isLoadingRandomGames && randomGames.length === 0">
+      <div class="loader"></div>
+      <p>Cargando juegos aleatorios...</p>
+    </div>
+
+    <div class="game-grid" *ngIf="randomGames.length > 0">
+      <div class="glass-card game-card" *ngFor="let game of randomGames">
+        <div class="game-image-container glass-image-container">
+          <img [src]="game.background_image" [alt]="game.name" class="game-image">
+          <div class="game-card-rating">{{ game.rating.toFixed(1) }}</div>
+        </div>
+        <div class="game-info game-card-body">
+          <h3 class="game-title game-card-title">{{ game.name }}</h3>
+          <div class="game-genres">
+            <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{ genre.name }}</span>
+          </div>
+          <div class="game-price game-card-price" *ngIf="formatPrice(game.price, true)">
+            {{ formatPrice(game.price, true) }}
+          </div>
         </div>
       </div>
     </div>

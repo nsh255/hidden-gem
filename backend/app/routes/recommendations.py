@@ -50,6 +50,11 @@ def get_recommendations_for_user(
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
+    # Check if the user has favorite games
+    favorite_games = db.query(models.FavoriteGame).filter(models.FavoriteGame.user_id == user_id).all()
+    if not favorite_games:
+        raise HTTPException(status_code=400, detail="El usuario no tiene juegos favoritos.")
+    
     # Generar recomendaciones
     recommendations = recommendation_engine.recommend_games(
         user_id=user_id,

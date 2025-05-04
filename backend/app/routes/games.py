@@ -41,7 +41,8 @@ def get_games(
         else:
             result = rawg_api.get_games(page, page_size)
         
-        if not result:
+        # Ensure RAWG API response is valid
+        if not result or "results" not in result:
             raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
         
         # Añadimos precios simulados a los juegos

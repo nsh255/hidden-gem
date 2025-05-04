@@ -13,6 +13,15 @@ router = APIRouter(
 
 @router.post("/", response_model=schemas.JuegoSteam, status_code=status.HTTP_201_CREATED)
 def create_steam_game(game: schemas.JuegoSteamCreate, db: Session = Depends(get_db)):
+    """
+    Crea un nuevo juego de Steam en la base de datos.
+
+    - **game**: Datos del juego a crear
+    - **db**: Sesión de la base de datos
+
+    Returns:
+        El juego creado.
+    """
     # Verificar si el juego ya existe
     db_game = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones).filter(
         models.JuegosScrapeadoDeSteamParaRecomendaiones.nombre == game.nombre
@@ -31,11 +40,30 @@ def create_steam_game(game: schemas.JuegoSteamCreate, db: Session = Depends(get_
 
 @router.get("/", response_model=List[schemas.JuegoSteam])
 def read_steam_games(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """
+    Obtiene una lista de juegos de Steam desde la base de datos.
+
+    - **skip**: Número de registros a omitir
+    - **limit**: Número máximo de registros a devolver
+    - **db**: Sesión de la base de datos
+
+    Returns:
+        Lista de juegos de Steam.
+    """
     games = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones).offset(skip).limit(limit).all()
     return games
 
 @router.get("/{game_id}", response_model=schemas.JuegoSteam)
 def read_steam_game(game_id: int, db: Session = Depends(get_db)):
+    """
+    Obtiene los detalles de un juego de Steam por su ID.
+
+    - **game_id**: ID del juego
+    - **db**: Sesión de la base de datos
+
+    Returns:
+        Detalles del juego.
+    """
     game = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones).filter(
         models.JuegosScrapeadoDeSteamParaRecomendaiones.id == game_id
     ).first()
@@ -46,6 +74,15 @@ def read_steam_game(game_id: int, db: Session = Depends(get_db)):
 
 @router.delete("/{game_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_steam_game(game_id: int, db: Session = Depends(get_db)):
+    """
+    Elimina un juego de Steam de la base de datos.
+
+    - **game_id**: ID del juego a eliminar
+    - **db**: Sesión de la base de datos
+
+    Returns:
+        None.
+    """
     game = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones).filter(
         models.JuegosScrapeadoDeSteamParaRecomendaiones.id == game_id
     ).first()
@@ -62,6 +99,15 @@ def scrape_bulk_steam_games(
     min_new_games: int = Query(100, description="Número mínimo de juegos NUEVOS a añadir"),
     db: Session = Depends(get_db)
 ):
+    """
+    Scrapea juegos indies de Steam de forma masiva y los guarda en la base de datos.
+
+    - **min_new_games**: Número mínimo de juegos nuevos a añadir
+    - **db**: Sesión de la base de datos
+
+    Returns:
+        Estadísticas del proceso de scraping.
+    """
     """
     Scrapea juegos indies de Steam de forma masiva y sincrónica.
     
@@ -151,6 +197,14 @@ def scrape_bulk_steam_games(
 
 @router.get("/count", status_code=status.HTTP_200_OK)
 def get_steam_games_count(db: Session = Depends(get_db)):
+    """
+    Obtiene el número actual de juegos de Steam en la base de datos.
+
+    - **db**: Sesión de la base de datos
+
+    Returns:
+        Número de juegos en la base de datos.
+    """
     """
     Obtiene el número actual de juegos de Steam en la base de datos.
     

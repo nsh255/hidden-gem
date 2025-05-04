@@ -129,7 +129,7 @@ export class AuthService {
   }
   
   isLoggedIn(): boolean {
-    return !!this.getToken() && !!this.getUserData();
+    return !!localStorage.getItem('auth_token'); // Check if token exists
   }
   
   getToken(): string | null {

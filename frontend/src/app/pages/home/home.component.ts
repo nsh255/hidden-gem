@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { GameService, GameSummary } from '../../services/game.service';
 import { RecommendationService, RecommendedGame } from '../../services/recommendation.service';
+import { AuthService } from '../../services/auth.service'; // Import AuthService
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -29,6 +30,9 @@ export class HomeComponent implements OnInit {
   // Reemplazamos los arreglos hardcodeados con arreglos vacíos
   recommendedGames: GameSummary[] = [];
   popularGames: GameSummary[] = [];
+  randomGames: GameSummary[] = [];
+  isLoadingRandomGames: boolean = false;
+  randomGamesPage: number = 1;
 
   // Propiedades para las recomendaciones de la API
   recommendedByGenres: RecommendedGame[] = [];
@@ -42,19 +46,23 @@ export class HomeComponent implements OnInit {
   // Géneros predeterminados para las recomendaciones
   defaultGenres: string[] = ['Action', 'RPG'];
 
+  isAuthenticated: boolean = false; // Track authentication status
+
   constructor(
     private gameService: GameService,
     private recommendationService: RecommendationService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService // Inject AuthService
   ) { }
 
   ngOnInit(): void {
-    // Cargar datos reales desde los servicios
-    this.loadRecommendedGames();
-    this.loadPopularGames();
-    
-    // Cargar recomendaciones por géneros desde la API
-    this.loadRecommendationsByGenres(this.defaultGenres);
+    this.isAuthenticated = this.authService.isLoggedIn(); // Check if user is authenticated
+    if (this.isAuthenticated) {
+      this.loadRecommendedGames();
+      this.loadRecommendationsByGenres(this.defaultGenres);
+    }
+    this.loadPopularGames(); // Popular games are visible to everyone
+    this.loadRandomGames(); // Load initial random games
   }
 
   // Método para cargar recomendaciones basadas en géneros
@@ -155,5 +163,37 @@ export class HomeComponent implements OnInit {
           this.errorPopular = 'No se pudieron cargar juegos populares.';
         }
       });
+  }
+
+  formatPrice(price: number | null | undefined, isFromRawg: boolean): string | null {
+    if (isFromRawg || price === undefined) return null; // Hide price for RAWG games or undefined values
+    return price === null || price === 0 ? 'Free to play' : `$${price.toFixed(2)}`;
+  }
+
+  loadRandomGames(): void {
+    if (this.isLoadingRandomGames) return;
+
+    this.isLoadingRandomGames = true;
+    this.gameService.getRandomGamesWithPage(this.randomGamesPage, 10) // Added the second argument (pageSize)
+      .subscribe({
+        next: (response) => {
+          if (response && response.results) {
+            this.randomGames = [...this.randomGames, ...response.results];
+            this.randomGamesPage++;
+          }
+          this.isLoadingRandomGames = false;
+        },
+        error: (error) => {
+          console.error('Error loading random games:', error);
+          this.isLoadingRandomGames = false;
+        }
+      });
+  }
+
+  @HostListener('window:scroll', [])
+  onScroll(): void {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+      this.loadRandomGames(); // Load more random games when near the bottom
+    }
   }
 }

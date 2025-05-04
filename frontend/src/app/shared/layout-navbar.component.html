@@ -1,17 +1,19 @@
 <nav class="navbar glass-navbar">
-  <div class="logo-container">
-    <a routerLink="/" class="logo">HiddenGem</a>
+  <div class="navbar-left">
+    <a routerLink="/" class="logo">
+      <span class="material-icons">star</span> HiddenGem
+    </a>
   </div>
-  
-  <div class="nav-links">
+
+  <div class="navbar-center">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Inicio</a>
     <a routerLink="/games" routerLinkActive="active" class="nav-link">Juegos</a>
     <a routerLink="/recommendations" routerLinkActive="active" class="nav-link">Recomendaciones</a>
     <a routerLink="/favorites" routerLinkActive="active" class="nav-link">Favoritos</a>
   </div>
-  
-  <div class="auth-links">
-    <a routerLink="/auth" routerLinkActive="active" class="nav-link">Iniciar sesión</a>
+
+  <div class="navbar-right">
+    <a routerLink="/auth" routerLinkActive="active" class="btn btn-secondary">Iniciar sesión</a>
     <a routerLink="/register" routerLinkActive="active" class="btn btn-primary">Registrarse</a>
   </div>
 </nav>

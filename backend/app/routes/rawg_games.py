@@ -118,21 +118,13 @@ def get_trending_games(
 def get_random_games(
     count: int = Query(10, description="Número de juegos aleatorios a recuperar", ge=1, le=50)
 ):
-    """
-    Obtiene una selección aleatoria de juegos desde RAWG.
-    
-    Esta función es útil para descubrir nuevos juegos de forma aleatoria o para
-    presentar recomendaciones variadas a los usuarios.
-    
-    - **count**: Número de juegos aleatorios a devolver (entre 1 y 50)
-    
-    La función consulta diferentes páginas aleatorias de la API de RAWG para garantizar
-    una mayor variedad en los resultados.
-    """
-    result = rawg_api.get_random_games(count)
-    if not result:
-        raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
-    return result
+    try:
+        result = rawg_api.get_random_games(count)
+        if not result or "results" not in result:
+            raise HTTPException(status_code=503, detail="No se encontraron juegos aleatorios.")
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Error al conectar con RAWG API: {str(e)}")
 
 @router.get("/game/{game_id}/screenshots", response_model=List[dict])
 def get_game_screenshots(game_id: int):

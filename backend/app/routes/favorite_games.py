@@ -84,12 +84,13 @@ def remove_favorite_from_user(favorite: schemas.FavoritoAdd, db: Session = Depen
 
 @router.get("/user/{user_id}", response_model=List[schemas.JuegoFavorito])
 def get_user_favorites(user_id: int, db: Session = Depends(get_db)):
-    # Verificar si el usuario existe
     user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
-    return user.juegos_favoritos
+    favorites = user.juegos_favoritos
+    if not favorites:
+        return []  # Return an empty list if no favorites
+    return favorites
 
 @router.get("/check/{user_id}/{game_id}", response_model=bool)
 def check_game_is_favorite(user_id: int, game_id: int, db: Session = Depends(get_db)):
