@@ -1,11 +1,11 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
-# Usuario schemas
+# Esquemas para usuarios
 class UsuarioBase(BaseModel):
     nick: str
-    email: EmailStr
-    precio_max: float
+    email: str
+    precio_max: float = 20.0
 
 class UsuarioCreate(UsuarioBase):
     contraseña: str
@@ -16,10 +16,10 @@ class Usuario(UsuarioBase):
     class Config:
         orm_mode = True
 
-# JuegosScrapeadoDeSteamParaRecomendaiones schemas
+# Esquemas para juegos de Steam
 class JuegoSteamBase(BaseModel):
     nombre: str
-    generos: List[str]
+    generos: List[str] 
     precio: float
     descripcion: str
     tags: List[str]
@@ -34,7 +34,7 @@ class JuegoSteam(JuegoSteamBase):
     class Config:
         orm_mode = True
 
-# JuegosFavoritosDeUsuarioQueProvienenDeRawg schemas
+# Esquemas para juegos favoritos
 class JuegoFavoritoBase(BaseModel):
     nombre: str
     imagen: str
@@ -51,7 +51,7 @@ class JuegoFavorito(JuegoFavoritoBase):
     class Config:
         orm_mode = True
 
-# Schema para añadir juego favorito a un usuario
+# Esquema para añadir favoritos
 class FavoritoAdd(BaseModel):
     usuario_id: int
     juego_id: int
@@ -72,16 +72,17 @@ class JuegoRecomendado(BaseModel):
     class Config:
         orm_mode = True
 
+# Esquemas para autenticación
 class UserLogin(BaseModel):
     email: str
     password: str
 
 class UserRegister(BaseModel):
     nick: str
-    email: EmailStr
+    email: str
     password: str
 
 class AuthResponse(BaseModel):
     token: str
     token_type: str
-    user: dict
+    user: Dict[str, Any]

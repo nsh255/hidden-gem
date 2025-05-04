@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from ..database import get_db
 from .. import models, schemas
 from ..utils.recommendation_engine import recommendation_engine
@@ -149,3 +149,43 @@ def get_recommendations_by_genres(
             status_code=500,
             detail=f"Error generando recomendaciones: {str(e)}"
         )
+
+@router.get("/games/{user_id}", response_model=List[Dict[str, Any]])
+def get_game_recommendations(
+    user_id: int,
+    max_price: float = Query(None, description="Precio máximo (si es None, usa el del usuario)"),
+    limit: int = Query(10, description="Número máximo de recomendaciones"),
+    db: Session = Depends(get_db)
+):
+    """
+    Genera recomendaciones de juegos para un usuario basado en sus preferencias
+    
+    Args:
+        user_id: ID del usuario
+        max_price: Precio máximo para filtrar juegos (opcional)
+        limit: Número máximo de recomendaciones
+        
+    Returns:
+        Lista de juegos recomendados con puntuación
+    """
+    try:
+        # Verificar que el usuario existe
+        user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+        # Obtener recomendaciones usando el motor de recomendaciones
+        recommendations = recommendation_engine.recommend_games(
+            user_id=user_id,
+            max_price=max_price,
+            limit=limit,
+            db=db
+        )
+        
+        if not recommendations:
+            return []
+        
+        return recommendations
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generando recomendaciones: {str(e)}")

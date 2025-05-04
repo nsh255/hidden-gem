@@ -1,5 +1,5 @@
 import os
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings  # Importar desde pydantic_settings en lugar de pydantic
 from dotenv import load_dotenv
 from pathlib import Path
 
