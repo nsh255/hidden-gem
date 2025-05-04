@@ -16,28 +16,19 @@ export class UserService {
    * @returns Observable con la respuesta del servidor
    */
   addGameToFavorites(gameId: number): Observable<any> {
-    // Mantenemos este método para compatibilidad con código existente
-    return this.http.post('/api/rawg/add-to-favorites', { game_id: gameId });
+    const userId = this.authService.getCurrentUserId();
+    return this.http.post('/api/rawg/add-to-favorites', { user_id: userId, game_id: gameId });
   }
   
   /**
-   * Añade un juego a favoritos usando el nuevo endpoint
-   * @param gameId ID del juego a añadir a favoritos
-   * @returns Observable con la respuesta del servidor
-   */
-  addFavorite(gameId: number): Observable<any> {
-    return this.http.post('/api/users/favorites', { game_id: gameId });
-  }
-  
-  /**
-   * @deprecated Use removeFavorite instead
-   * Remueve un juego de los favoritos del usuario (endpoint antiguo)
+   * Remueve un juego de los favoritos del usuario
    * @param gameId ID del juego a remover de favoritos
    * @returns Observable con la respuesta del servidor
    */
   removeGameFromFavorites(gameId: number): Observable<any> {
+    const userId = this.authService.getCurrentUserId();
     return this.http.delete('/api/favorite-games/remove-favorite', {
-      body: { juego_id: gameId }
+      body: { usuario_id: userId, juego_id: gameId }
     });
   }
   
@@ -47,32 +38,20 @@ export class UserService {
    * @returns Observable con la respuesta del servidor
    */
   checkIfGameIsFavorite(gameId: number): Observable<boolean> {
-    return this.http.get<boolean>(`/api/users/favorites/check/${gameId}`);
+    const userId = this.authService.getCurrentUserId();
+    // Esta funcionalidad parece que no existe, tendríamos que implementarla comparando
+    // con la lista completa de favoritos
+    return this.getFavoriteGames().pipe(
+      map(favorites => favorites.some(fav => fav.id === gameId))
+    );
   }
 
   /**
-   * @deprecated Use getFavorites instead
-   * Obtiene todos los juegos favoritos del usuario actual (endpoint antiguo)
+   * Obtiene todos los juegos favoritos del usuario actual
    * @returns Observable con la lista de juegos favoritos
    */
   getFavoriteGames(): Observable<any[]> {
-    return this.http.get<any[]>('/api/favorite-games/current-user');
-  }
-
-  /**
-   * Obtiene los juegos favoritos del usuario actual con datos completos
-   * @returns Observable con la lista de juegos favoritos procesados
-   */
-  getFavorites(): Observable<any[]> {
-    return this.http.get<any[]>('/api/users/favorites');
-  }
-
-  /**
-   * Elimina un juego de los favoritos del usuario
-   * @param gameId ID del juego a eliminar de favoritos
-   * @returns Observable con la respuesta del servidor
-   */
-  removeFavorite(gameId: number): Observable<any> {
-    return this.http.delete(`/api/users/favorites/${gameId}`);
+    const userId = this.authService.getCurrentUserId();
+    return this.http.get<any[]>(`/api/favorite-games/user/${userId}`);
   }
 }

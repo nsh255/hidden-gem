@@ -63,6 +63,7 @@ export class GameDetailComponent implements OnInit {
       if (idParam) {
         this.gameId = parseInt(idParam, 10);
         this.fetchGameDetails(idParam);
+        this.checkFavoriteStatus(this.gameId); // Añadir verificación de estado de favorito
       } else {
         this.errorMessage = 'No se pudo encontrar el ID del juego.';
         this.isLoading = false;
@@ -118,33 +119,43 @@ export class GameDetailComponent implements OnInit {
   }
 
   /**
-   * Carga juegos similares (simulado por ahora)
+   * Carga juegos similares desde la API
    */
   loadSimilarGames(): void {
-    // Simulación de carga
-    setTimeout(() => {
-      // Para el ejemplo, usamos datos simulados
-      this.similarGames = [
-        {
-          id: 1,
-          name: 'Celeste',
-          imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/504230/header.jpg',
-          genres: ['Plataformas', 'Indie', 'Difícil']
-        },
-        {
-          id: 2,
-          name: 'Dead Cells',
-          imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/588650/header.jpg',
-          genres: ['Roguelike', 'Metroidvania', 'Acción']
-        },
-        {
-          id: 3,
-          name: 'Hades',
-          imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/1145360/header.jpg',
-          genres: ['Roguelike', 'Acción', 'Indie']
-        }
-      ];
-    }, 500);
+    if (!this.gameId) return;
+    
+    this.gameService.getSimilarGames(this.gameId)
+      .pipe(
+        catchError(error => {
+          console.error('Error al cargar juegos similares:', error);
+          return of([]);
+        })
+      )
+      .subscribe(similarGamesData => {
+        // Convertir los datos de la API al formato que espera la interfaz SimilarGame
+        this.similarGames = similarGamesData.map(game => ({
+          id: game.id,
+          name: game.name,
+          imageUrl: game.background_image,
+          genres: game.genres.map(g => g.name)
+        }));
+      });
+  }
+
+  /**
+   * Verifica si el juego actual está en favoritos
+   */
+  checkFavoriteStatus(gameId: number): void {
+    this.userService.checkIfGameIsFavorite(gameId)
+      .pipe(
+        catchError(error => {
+          console.error('Error al verificar estado de favorito:', error);
+          return of(false);
+        })
+      )
+      .subscribe(isFavorite => {
+        this.isFavorite = isFavorite;
+      });
   }
 
   /**
@@ -156,7 +167,7 @@ export class GameDetailComponent implements OnInit {
     this.isAddingToFavorites = true;
     this.favoriteActionMessage = null;
 
-    this.userService.addGameToFavorites(this.gameId)
+    this.userService.addFavorite(this.gameId) // Usar el método actualizado
       .pipe(
         catchError(error => {
           console.error('Error al añadir a favoritos:', error);
@@ -182,12 +193,43 @@ export class GameDetailComponent implements OnInit {
   }
 
   /**
+   * Quita el juego actual de favoritos
+   */
+  removeFromFavorites(): void {
+    if (!this.gameId) return;
+    
+    this.isAddingToFavorites = true; // Reutilizamos la variable de estado
+    this.favoriteActionMessage = null;
+
+    this.userService.removeFavorite(this.gameId)
+      .pipe(
+        catchError(error => {
+          console.error('Error al quitar de favoritos:', error);
+          this.favoriteActionMessage = 'Error al quitar de favoritos. Por favor, inténtalo de nuevo.';
+          this.favoriteActionSuccess = false;
+          this.isAddingToFavorites = false;
+          return of(null);
+        })
+      )
+      .subscribe(response => {
+        this.isFavorite = false;
+        this.favoriteActionMessage = 'Juego eliminado de favoritos';
+        this.favoriteActionSuccess = true;
+        this.isAddingToFavorites = false;
+        
+        // Auto-ocultar el mensaje después de 3 segundos
+        setTimeout(() => {
+          this.favoriteActionMessage = null;
+        }, 3000);
+      });
+  }
+
+  /**
    * Toggle para añadir/quitar de favoritos
    */
   toggleFavorite(): void {
     if (this.isFavorite) {
-      // Lógica para quitar de favoritos (para implementar más adelante)
-      console.log('Quitar de favoritos no implementado aún');
+      this.removeFromFavorites();
     } else {
       this.addToFavorites();
     }

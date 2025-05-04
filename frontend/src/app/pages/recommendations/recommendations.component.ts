@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { GameService, RecommendedGame } from '../../services/game.service';
-import { RecommendationService } from '../../services/recommendation.service';
+import { RecommendationService, RecommendedGame } from '../../services/recommendation.service';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 

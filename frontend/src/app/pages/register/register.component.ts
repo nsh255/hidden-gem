@@ -82,6 +82,8 @@ export class RegisterComponent {
       // Si hay error en las contraseñas, mostrar mensaje específico
       if (this.registerForm.hasError('passwordMismatch')) {
         this.errorMessage = 'Las contraseñas no coinciden';
+      } else {
+        this.errorMessage = 'Por favor, completa correctamente todos los campos requeridos';
       }
     }
   }

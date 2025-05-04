@@ -13,7 +13,7 @@
   <!-- Mensaje de error -->
   <div class="error-message glass-container" *ngIf="errorMessage">
     <p>{{ errorMessage }}</p>
-    <button class="btn-retry" (click)="loadPersonalizedRecommendations()">Reintentar</button>
+    <button class="btn btn-primary" (click)="loadPersonalizedRecommendations()">Reintentar</button>
   </div>
 
   <!-- Mensaje de "sin favoritos" -->
@@ -22,7 +22,7 @@
       <div class="empty-icon">⭐</div>
       <h2>Añade juegos a favoritos</h2>
       <p>Necesitamos que marques juegos como favoritos para poder generar recomendaciones personalizadas</p>
-      <button class="btn-explore" routerLink="/home">Explorar juegos</button>
+      <button class="btn btn-primary" routerLink="/home">Explorar juegos</button>
     </div>
   </div>
 
@@ -32,14 +32,14 @@
       <div class="empty-icon">🔍</div>
       <h2>No encontramos recomendaciones</h2>
       <p>Explora más juegos para obtener recomendaciones personalizadas</p>
-      <button class="btn-explore" routerLink="/home">Explorar juegos</button>
+      <button class="btn btn-primary" routerLink="/home">Explorar juegos</button>
     </div>
   </div>
 
   <!-- Lista de juegos recomendados -->
   <div class="recommendations-grid" *ngIf="!isLoading && recommendedGames.length > 0">
-    <div class="recommendation-card glass-container" *ngFor="let game of recommendedGames" (click)="navigateToGameDetail(game.id)">
-      <div class="recommendation-image-container">
+    <div class="glass-card recommendation-card" *ngFor="let game of recommendedGames" (click)="navigateToGameDetail(game.id)">
+      <div class="recommendation-image-container glass-image-container">
         <img [src]="game.imagen_principal" [alt]="game.nombre" class="recommendation-image">
         <div class="recommendation-score">{{ (game.puntuacion * 10).toFixed(1) }}</div>
       </div>

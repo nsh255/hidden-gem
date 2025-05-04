@@ -8,15 +8,15 @@
   <!-- Mensaje de error -->
   <div class="error-message glass-container" *ngIf="errorMessage">
     <p>{{ errorMessage }}</p>
-    <button class="btn-back" (click)="goBack()">Volver</button>
+    <button class="btn btn-primary" (click)="goBack()">Volver</button>
   </div>
 
   <!-- Contenido del juego -->
   <div class="game-detail-content" *ngIf="game && !isLoading">
     <!-- Banner del juego -->
-    <div class="game-banner">
+    <div class="game-banner glass-image-container">
       <img [src]="game.imageUrl" [alt]="game.name" class="game-background">
-      <div class="banner-overlay"></div>
+      <div class="banner-overlay glass-image-overlay"></div>
     </div>
 
     <!-- Sección principal de detalles -->
@@ -31,18 +31,18 @@
         </div>
         <div class="game-actions">
           <!-- Botón para añadir a favoritos -->
-          <button class="btn-favorite" [class.favorited]="isFavorite" (click)="toggleFavorite()" [disabled]="isAddingToFavorites">
+          <button class="btn btn-primary" [class.favorited]="isFavorite" (click)="toggleFavorite()" [disabled]="isAddingToFavorites">
             <span class="heart-icon">{{ isFavorite ? '♥' : '♡' }}</span>
             <span *ngIf="!isAddingToFavorites">{{ isFavorite ? 'Añadido a favoritos' : 'Añadir a favoritos' }}</span>
             <span *ngIf="isAddingToFavorites">Añadiendo...</span>
           </button>
-          <button class="btn-back" (click)="goBack()">Volver</button>
+          <button class="btn btn-secondary" (click)="goBack()">Volver</button>
         </div>
       </div>
 
       <!-- Mensaje de acción sobre favoritos -->
       <div class="message-container" *ngIf="favoriteActionMessage">
-        <div class="action-message" [class.success]="favoriteActionSuccess" [class.error]="!favoriteActionSuccess">
+        <div class="action-message" [class.success-alert]="favoriteActionSuccess" [class.error-alert]="!favoriteActionSuccess">
           {{ favoriteActionMessage }}
         </div>
       </div>
@@ -53,7 +53,7 @@
 
       <div class="game-price-container">
         <span class="game-price">{{ game.price | currency:'USD':'symbol':'1.2-2' }}</span>
-        <a [href]="game.storeUrl" target="_blank" class="btn-buy" *ngIf="game.storeUrl">Ver en tienda</a>
+        <a [href]="game.storeUrl" target="_blank" class="btn btn-primary" *ngIf="game.storeUrl">Ver en tienda</a>
       </div>
 
       <div class="game-description">
@@ -65,7 +65,7 @@
       <div class="game-gallery" *ngIf="game.screenshots && game.screenshots.length > 0">
         <h2>Galería</h2>
         <div class="screenshot-grid">
-          <div class="screenshot" *ngFor="let screenshot of game.screenshots">
+          <div class="screenshot glass-image-container" *ngFor="let screenshot of game.screenshots">
             <img [src]="screenshot" alt="Captura de pantalla del juego">
           </div>
         </div>
@@ -76,8 +76,8 @@
     <div class="glass-container similar-games" *ngIf="similarGames && similarGames.length > 0">
       <h2>Juegos similares que te podrían gustar</h2>
       <div class="similar-games-grid">
-        <div class="similar-game-card" *ngFor="let similarGame of similarGames" (click)="navigateToGame(similarGame.id)">
-          <div class="similar-game-image">
+        <div class="glass-card similar-game-card" *ngFor="let similarGame of similarGames" (click)="navigateToGame(similarGame.id)">
+          <div class="similar-game-image glass-image-container">
             <img [src]="similarGame.imageUrl" [alt]="similarGame.name">
           </div>
           <div class="similar-game-info">

@@ -1,1 +1,51 @@
-<p>game-list works!</p>
+<div class="game-list-container">
+  <header class="list-header glass-container">
+    <h1 class="list-title">Explorar Juegos</h1>
+    <p class="list-subtitle">Descubre nuevos juegos indie que podrían convertirse en tus favoritos</p>
+  </header>
+
+  <!-- Indicador de carga -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loader"></div>
+    <p>Cargando juegos...</p>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div class="error-message glass-container" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+    <button class="btn btn-primary" (click)="loadGames()">Reintentar</button>
+  </div>
+
+  <!-- Lista de juegos -->
+  <div class="games-grid" *ngIf="!isLoading && games.length > 0">
+    <div class="glass-card game-card" *ngFor="let game of games" (click)="navigateToGameDetail(game.id)">
+      <div class="game-image-container glass-image-container">
+        <img [src]="game.background_image" [alt]="game.name" class="game-image">
+        <div class="game-card-rating">{{ game.rating.toFixed(1) }}</div>
+      </div>
+      <div class="game-info game-card-body">
+        <h3 class="game-title game-card-title">{{ game.name }}</h3>
+        <div class="game-genres">
+          <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{ genre.name }}</span>
+        </div>
+        <div class="game-price game-card-price">{{ game.price | currency:'USD':'symbol':'1.2-2' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div class="pagination glass-container" *ngIf="!isLoading && games.length > 0">
+    <button class="btn btn-secondary" (click)="previousPage()" [disabled]="!hasPreviousPage">Anterior</button>
+    <span class="page-indicator">Página {{ currentPage }}</span>
+    <button class="btn btn-primary" (click)="nextPage()" [disabled]="!hasNextPage">Siguiente</button>
+  </div>
+
+  <!-- Mensaje de no resultados -->
+  <div class="no-results glass-container" *ngIf="!isLoading && games.length === 0 && !errorMessage">
+    <div class="empty-state">
+      <div class="empty-icon">🎮</div>
+      <h2>No se encontraron juegos</h2>
+      <p>Intenta ajustar los filtros o prueba más tarde</p>
+    </div>
+  </div>
+</div>

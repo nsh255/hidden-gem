@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { GameService, RecommendedGame } from '../../services/game.service';
+import { GameService } from '../../services/game.service';
+import { RecommendationService, RecommendedGame } from '../../services/recommendation.service';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -105,6 +106,7 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private gameService: GameService,
+    private recommendationService: RecommendationService,
     private router: Router
   ) { }
 
@@ -125,7 +127,7 @@ export class HomeComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = null;
     
-    this.gameService.getRecommendationsByGenres(genres, maxPrice)
+    this.recommendationService.getRecommendationsByGenres(genres, maxPrice)
       .pipe(
         catchError(error => {
           this.errorMessage = 'Error al cargar recomendaciones. Por favor, inténtalo de nuevo.';
@@ -137,7 +139,6 @@ export class HomeComponent implements OnInit {
       .subscribe(games => {
         this.recommendedByGenres = games;
         this.isLoading = false;
-        console.log('Recomendaciones cargadas:', games);
       });
   }
 

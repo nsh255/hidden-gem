@@ -1,5 +1,5 @@
 <div class="container">
-  <div class="card glass">
+  <div class="glass-card">
     <h2 class="title">Crea tu cuenta</h2>
     
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
@@ -65,11 +65,11 @@
         </div>
       </div>
       
-      <div *ngIf="errorMessage" class="error-alert glass">
+      <div *ngIf="errorMessage" class="error-alert">
         {{ errorMessage }}
       </div>
       
-      <button type="submit" class="btn" [disabled]="isLoading">
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading">
         {{ isLoading ? 'Procesando...' : 'Registrarse' }}
       </button>
       

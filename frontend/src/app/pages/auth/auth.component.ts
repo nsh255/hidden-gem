@@ -31,7 +31,7 @@ export class AuthComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Verificar si viene de un registro exitoso
+    // Verificar si viene de un registro exitoso o tiene URL de retorno
     this.route.queryParams.subscribe(params => {
       if (params['registered'] === 'true') {
         this.registrationSuccess = true;
@@ -42,6 +42,11 @@ export class AuthComponent implements OnInit {
             email: params['email']
           });
         }
+      }
+      
+      // Guardar la URL de retorno si existe
+      if (params['returnUrl']) {
+        localStorage.setItem('returnUrl', params['returnUrl']);
       }
     });
   }
@@ -57,8 +62,10 @@ export class AuthComponent implements OnInit {
         .subscribe({
           next: () => {
             this.isLoading = false;
-            // Redirige a la página principal después del login
-            this.router.navigate(['/']);
+            // Redirigir a la URL de retorno o a la página principal
+            const returnUrl = localStorage.getItem('returnUrl') || '/';
+            localStorage.removeItem('returnUrl');
+            this.router.navigateByUrl(returnUrl);
           },
           error: (error: HttpErrorResponse) => {
             this.isLoading = false;

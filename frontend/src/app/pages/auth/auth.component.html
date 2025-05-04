@@ -1,8 +1,8 @@
 <div class="container">
-  <div class="card glass">
+  <div class="glass-card">
     <h2 class="title">Iniciar sesión</h2>
     
-    <div *ngIf="registrationSuccess" class="success-alert glass">
+    <div *ngIf="registrationSuccess" class="success-alert">
       ¡Registro completado con éxito! Ya puedes iniciar sesión.
     </div>
     
@@ -36,11 +36,11 @@
         </div>
       </div>
       
-      <div *ngIf="errorMessage" class="error-alert glass">
+      <div *ngIf="errorMessage" class="error-alert">
         {{ errorMessage }}
       </div>
       
-      <button type="submit" class="btn" [disabled]="isLoading">
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading">
         {{ isLoading ? 'Procesando...' : 'Iniciar sesión' }}
       </button>
       
