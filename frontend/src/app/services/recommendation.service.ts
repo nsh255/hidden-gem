@@ -113,12 +113,12 @@ export class RecommendationService {
   private mapToRecommendedGames(games: any[]): RecommendedGame[] {
     return games.map(game => ({
       id: game.id,
-      nombre: game.name,
-      generos: game.genres?.map((g: { name: any; }) => g.name) || [],
-      precio: game.price || 19.99,  // RAWG no proporciona precios, asignamos uno por defecto
-      descripcion: game.description_raw || '',
-      imagen_principal: game.background_image || '',
-      puntuacion: game.rating / 10 || 0.7  // Convertimos de escala 0-5 a 0-1
+      nombre: game.name || game.nombre,
+      generos: game.genres?.map((g: { name: any; }) => g.name) || game.generos || [],
+      precio: game.price || game.precio || 19.99,
+      descripcion: game.description_raw || game.descripcion || '',
+      imagen_principal: game.background_image || game.imagen_principal || '',
+      puntuacion: (game.rating ? game.rating / 10 : 0.7)  // Convertimos de escala 0-5 a 0-1
     }));
   }
 }

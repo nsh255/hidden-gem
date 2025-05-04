@@ -49,6 +49,17 @@ export interface GameReview {
   created_at: string;
 }
 
+// Interfaz para juegos de Steam
+export interface SteamGame {
+  id: number;
+  nombre: string;
+  generos: string[];
+  precio: number;
+  descripcion: string;
+  tags: string[];
+  imagen_principal: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -73,11 +84,70 @@ export class GameService {
    * @returns Observable con la respuesta paginada de juegos
    */
   getGames(page: number = 1, pageSize: number = 12): Observable<PaginatedGamesResponse> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('page_size', pageSize.toString());
-    
-    return this.http.get<PaginatedGamesResponse>('/api/games', { params });
+    return this.getSteamGames(page, pageSize).pipe(
+      map(steamGames => this.convertSteamGamesToPaginatedResponse(steamGames, page, pageSize)),
+      catchError(error => {
+        console.error('Error fetching Steam games:', error);
+        // Fallback to empty response
+        return of({
+          count: 0,
+          next: null,
+          previous: null,
+          results: []
+        });
+      })
+    );
+  }
+
+  /**
+   * Obtiene juegos de Steam
+   * @param page Número de página
+   * @param pageSize Tamaño de la página
+   * @returns Observable con la lista de juegos de Steam
+   */
+  private getSteamGames(page: number = 1, pageSize: number = 12): Observable<SteamGame[]> {
+    const skip = (page - 1) * pageSize;
+    return this.http.get<SteamGame[]>('/api/steam-games/', {
+      params: {
+        skip: skip.toString(),
+        limit: pageSize.toString()
+      }
+    });
+  }
+
+  /**
+   * Convierte juegos de Steam al formato paginado esperado por la UI
+   */
+  private convertSteamGamesToPaginatedResponse(
+    steamGames: SteamGame[],
+    currentPage: number,
+    pageSize: number
+  ): PaginatedGamesResponse {
+    // Asumimos que hay una página siguiente si tenemos el número exacto de items por página
+    const hasNextPage = steamGames.length === pageSize;
+    // Asumimos que hay una página anterior si no estamos en la primera página
+    const hasPreviousPage = currentPage > 1;
+
+    // Mapear juegos de Steam al formato GameSummary
+    const gameSummaries: GameSummary[] = steamGames.map(game => ({
+      id: game.id,
+      name: game.nombre,
+      background_image: game.imagen_principal,
+      released: '', // Steam no proporciona esta información, así que la dejamos vacía
+      rating: 0, // Podríamos calcular un rating basado en algo si fuera necesario
+      genres: game.generos.map((genreName, index) => ({
+        id: index + 1, // Generamos IDs artificiales
+        name: genreName
+      })),
+      price: game.precio
+    }));
+
+    return {
+      count: steamGames.length, // Esto es solo para la página actual, idealmente deberíamos tener un count total
+      next: hasNextPage ? `/api/steam-games/?skip=${(currentPage) * pageSize}&limit=${pageSize}` : null,
+      previous: hasPreviousPage ? `/api/steam-games/?skip=${(currentPage - 2) * pageSize}&limit=${pageSize}` : null,
+      results: gameSummaries
+    };
   }
 
   /**

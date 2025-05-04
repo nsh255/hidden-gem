@@ -23,6 +23,19 @@ def search_rawg_games(
     result = rawg_api.search_games(query, page, page_size)
     if not result:
         raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
+    
+    # Filtrar juegos con contenido sexual en el título o descripción
+    sexual_keywords = [
+        "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
+        "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", 
+        "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene"
+    ]
+    filtered_results = [
+        game for game in result.get("results", [])
+        if not any(keyword in (game.get("name", "").lower() + game.get("description", "").lower())
+                   for keyword in sexual_keywords)
+    ]
+    result["results"] = filtered_results
     return result
 
 @router.get("/game/{game_id}", response_model=dict)
@@ -33,6 +46,17 @@ def get_rawg_game(game_id: int):
     result = rawg_api.get_game(game_id)
     if not result:
         raise HTTPException(status_code=404, detail="Juego no encontrado o error en la API")
+    
+    # Verificar contenido sexual en el título o descripción
+    sexual_keywords = [
+        "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
+        "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", 
+        "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene"
+    ]
+    if any(keyword in (result.get("name", "").lower() + result.get("description", "").lower())
+           for keyword in sexual_keywords):
+        raise HTTPException(status_code=400, detail="El juego contiene contenido inapropiado")
+    
     return result
 
 @router.post("/add-to-favorites", status_code=status.HTTP_201_CREATED, response_model=schemas.JuegoFavorito)

@@ -61,6 +61,18 @@ def get_games(
             else:
                 game["price"] = 14.99
         
+        # Filtrar juegos con contenido sexual
+        sexual_keywords = [
+            "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
+            "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", 
+            "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene"
+        ]
+        result["results"] = [
+            game for game in result.get("results", [])
+            if not any(keyword in (game.get("name", "").lower() + game.get("description", "").lower())
+                       for keyword in sexual_keywords)
+        ]
+        
         return result
         
     except Exception as e:
@@ -185,6 +197,18 @@ def get_similar_games(
                     game["price"] = 14.99
                 
                 all_results.append(game)
+        
+        # Filtrar juegos con contenido sexual
+        sexual_keywords = [
+            "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
+            "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", 
+            "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene"
+        ]
+        all_results = [
+            game for game in all_results
+            if not any(keyword in (game.get("name", "").lower() + game.get("description", "").lower())
+                       for keyword in sexual_keywords)
+        ]
         
         # Aplicar paginación
         start_idx = (page - 1) * limit
