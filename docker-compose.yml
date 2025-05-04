@@ -1,39 +1,47 @@
-version: '3.8'
+version: '3'
 
 services:
   postgres:
     image: postgres:13
     container_name: hidden-gem-postgres
-    restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-hidden_gem}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hiddengem
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - hidden-gem-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    build: ./backend
     container_name: hidden-gem-backend
-    restart: always
     depends_on:
       - postgres
-    ports:
-      - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-hidden_gem}
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/hiddengem
       - SECRET_KEY=${SECRET_KEY:-insecure_key_for_dev}
       - RAWG_API_KEY=${RAWG_API_KEY:-your_rawg_api_key}
+    ports:
+      - "8000:8000"
     volumes:
       - ./backend:/app
-    networks:
-      - hidden-gem-network
+      - ./.env:/app/.env
+    command: >
+      sh -c "pip install -r requirements.txt && pip install pydantic-settings &&
+            uvicorn app.main:app --host 0.0.0.0 --reload"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   frontend:
     build:
@@ -48,14 +56,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - NODE_ENV=development
-    networks:
-      - hidden-gem-network
-    # Para facilitar el desarrollo, mostrar la salida de la consola directamente
-    tty: true
-    stdin_open: true
-    # Este script se ejecutará antes de iniciar Angular
     command: >
       sh -c "
         # Crear directorio de assets si no existe
@@ -80,13 +80,15 @@ services:
           }' > /app/proxy.conf.json;
         fi;
         
+        # Instalar dependencias si no están instaladas
+        if [ ! -d '/app/node_modules/@angular' ]; then
+          echo 'Instalando dependencias...';
+          npm install;
+        fi;
+        
         # Iniciar el servidor de desarrollo de Angular
         ng serve --host 0.0.0.0 --disable-host-check --poll=2000 --proxy-config proxy.conf.json
       "
-
-networks:
-  hidden-gem-network:
-    driver: bridge
 
 volumes:
   postgres_data:
