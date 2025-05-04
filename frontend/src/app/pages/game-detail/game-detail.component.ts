@@ -91,25 +91,41 @@ export class GameDetailComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = null;
 
-    this.gameService.getGameById(gameId)
-      .pipe(
-        catchError(error => {
-          console.error('Error al obtener detalles del juego:', error);
+    // Determine if we're fetching a Steam game based on the route
+    const isSteamGame = this.router.url.includes('/steam-game/');
+    
+    // Choose the appropriate service method based on the game type
+    const gameObservable = isSteamGame ? 
+      this.gameService.getSteamGameById(parseInt(gameId)) : 
+      this.gameService.getGameById(gameId);
+
+    gameObservable.pipe(
+      catchError(error => {
+        console.error('Error al obtener detalles del juego:', error);
+        
+        // Mensaje de error personalizado basado en el tipo de error
+        if (error.status === 400 && error.error?.detail?.includes('contenido inapropiado')) {
+          this.errorMessage = 'Este juego no está disponible debido a restricciones de contenido.';
+        } else if (error.status === 404) {
+          this.errorMessage = 'No se encontró el juego solicitado. Es posible que no exista o haya sido eliminado.';
+        } else {
           this.errorMessage = 'No se pudieron cargar los detalles del juego. Por favor, inténtalo de nuevo.';
-          this.isLoading = false;
-          return of(null);
-        })
-      )
-      .subscribe(data => {
-        if (data) {
-          this.gameData = data;
-          // Convertir datos de la API al formato que espera nuestra interfaz
-          this.mapApiDataToGameDetail(data);
-          // También podríamos cargar juegos similares aquí basados en géneros
-          this.loadSimilarGames();
         }
+        
         this.isLoading = false;
-      });
+        return of(null);
+      })
+    )
+    .subscribe(data => {
+      if (data) {
+        this.gameData = data;
+        // Convertir datos de la API al formato que espera nuestra interfaz
+        this.mapApiDataToGameDetail(data);
+        // También podríamos cargar juegos similares aquí basados en géneros
+        this.loadSimilarGames();
+      }
+      this.isLoading = false;
+    });
   }
 
   /**
@@ -131,14 +147,27 @@ export class GameDetailComponent implements OnInit {
   }
 
   /**
-   * Carga juegos similares desde la API
+   * Carga juegos similares (aleatorios por género) desde la API
    */
   loadSimilarGames(page: number = 1): void {
-    if (!this.gameId) return;
+    if (!this.gameId || !this.gameData) return;
     
     this.isLoadingSimilarGames = true;
     
-    this.gameService.getSimilarGames(this.gameId, page)
+    // Extraer géneros del juego actual
+    const gameGenres = this.gameData.genres?.map(g => g.name) || [];
+    
+    // Si no hay géneros, no podemos mostrar juegos similares
+    if (gameGenres.length === 0) {
+      this.isLoadingSimilarGames = false;
+      return;
+    }
+    
+    // Determinar el número de juegos por página
+    const gamesPerPage = 4;
+    
+    // Usar el servicio para obtener juegos aleatorios por géneros
+    this.gameService.getRandomGamesByGenres(gameGenres, gamesPerPage)
       .pipe(
         catchError(error => {
           console.error('Error al cargar juegos similares:', error);
@@ -147,17 +176,18 @@ export class GameDetailComponent implements OnInit {
         })
       )
       .subscribe(similarGamesData => {
+        console.log('Juegos similares (aleatorios por género):', similarGamesData);
+        
         // Convertir los datos de la API al formato que espera la interfaz SimilarGame
         this.similarGames = similarGamesData.map(game => ({
           id: game.id,
-          name: game.name,
-          imageUrl: game.background_image,
-          genres: game.genres.map((g: { name: string }) => g.name)
+          name: game.nombre || game.name,
+          imageUrl: game.imagen_principal || game.background_image,
+          genres: game.generos || (game.genres?.map((g: any) => typeof g === 'string' ? g : g.name) || [])
         }));
         
-        // Verificar si hay más juegos disponibles
-        this.hasMoreSimilarGames = similarGamesData.length > 0 && 
-                                  similarGamesData[0].has_more === true;
+        // Simular que siempre hay más juegos disponibles para poder cambiar de página
+        this.hasMoreSimilarGames = true;
         
         this.currentSimilarPage = page;
         this.isLoadingSimilarGames = false;
@@ -165,14 +195,14 @@ export class GameDetailComponent implements OnInit {
   }
 
   /**
-   * Navega entre páginas de juegos similares
+   * Navega entre páginas de juegos similares (genera nuevos juegos aleatorios)
    */
   navigateSimilarGames(direction: 'prev' | 'next'): void {
     let newPage = this.currentSimilarPage;
     
     if (direction === 'prev' && this.currentSimilarPage > 1) {
       newPage = this.currentSimilarPage - 1;
-    } else if (direction === 'next' && this.hasMoreSimilarGames) {
+    } else if (direction === 'next') {
       newPage = this.currentSimilarPage + 1;
     } else {
       return; // No hacer nada si no se puede navegar en esa dirección
@@ -185,6 +215,8 @@ export class GameDetailComponent implements OnInit {
    * Verifica si el juego actual está en favoritos
    */
   checkFavoriteStatus(gameId: number): void {
+    if (!this.isAuthenticated) return;
+    
     this.userService.checkIfGameIsFavorite(gameId)
       .pipe(
         catchError(error => {
@@ -201,12 +233,21 @@ export class GameDetailComponent implements OnInit {
    * Añade el juego actual a favoritos
    */
   addToFavorites(): void {
-    if (!this.gameId) return;
+    if (!this.gameId || !this.isAuthenticated) return;
     
     this.isAddingToFavorites = true;
     this.favoriteActionMessage = null;
 
-    this.userService.addFavorite(this.gameId) // Usar el método actualizado
+    // Get current user ID from the auth service
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      this.favoriteActionMessage = 'Debes iniciar sesión para añadir favoritos';
+      this.favoriteActionSuccess = false;
+      this.isAddingToFavorites = false;
+      return;
+    }
+
+    this.userService.addFavorite(this.gameId)
       .pipe(
         catchError(error => {
           console.error('Error al añadir a favoritos:', error);
@@ -235,10 +276,19 @@ export class GameDetailComponent implements OnInit {
    * Quita el juego actual de favoritos
    */
   removeFromFavorites(): void {
-    if (!this.gameId) return;
+    if (!this.gameId || !this.isAuthenticated) return;
     
     this.isAddingToFavorites = true; // Reutilizamos la variable de estado
     this.favoriteActionMessage = null;
+
+    // Get current user ID from the auth service
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      this.favoriteActionMessage = 'Debes iniciar sesión para gestionar favoritos';
+      this.favoriteActionSuccess = false;
+      this.isAddingToFavorites = false;
+      return;
+    }
 
     this.userService.removeFavorite(this.gameId)
       .pipe(

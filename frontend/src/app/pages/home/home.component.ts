@@ -1,11 +1,11 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { GameService, GameSummary } from '../../services/game.service';
 import { RecommendationService, RecommendedGame } from '../../services/recommendation.service';
-import { AuthService } from '../../services/auth.service'; // Import AuthService
-import { catchError, finalize } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
+import { catchError, finalize, filter } from 'rxjs/operators';
+import { of, Subscription } from 'rxjs';
 import { GameSearchComponent } from '../../components/game-search/game-search.component';
 
 // Interfaz para los datos crudos de juegos que vienen de la API
@@ -27,119 +27,180 @@ interface RawGameData {
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit {
-  // Reemplazamos los arreglos hardcodeados con arreglos vacíos
-  recommendedGames: GameSummary[] = [];
+export class HomeComponent implements OnInit, OnDestroy {
+  // Arrays de juegos
   popularGames: GameSummary[] = [];
   randomGames: GameSummary[] = [];
   isLoadingRandomGames: boolean = false;
   randomGamesPage: number = 1;
 
-  // Propiedades para las recomendaciones de la API
-  recommendedByGenres: RecommendedGame[] = [];
-  isLoading: boolean = false;
+  // Estado de carga
   isLoadingPopular: boolean = false;
-  isLoadingRecommended: boolean = false;
-  errorMessage: string | null = null;
   errorPopular: string | null = null;
-  errorRecommended: string | null = null;
 
-  // Géneros predeterminados para las recomendaciones
-  defaultGenres: string[] = ['Action', 'RPG'];
+  // Estado de autenticación
+  isAuthenticated: boolean = false;
 
-  isAuthenticated: boolean = false; // Track authentication status
-
+  // Búsqueda
   searchResults: GameSummary[] = [];
   isSearching: boolean = false;
   searchError: string | null = null;
+
+  // Nuevas propiedades para juegos por género
+  genresList: string[] = ['Action', 'Adventure', 'RPG', 'Strategy', 'Simulation', 'Puzzle', 'Platformer', 'Roguelike', 'Survival'];
+  gamesByGenre: { [genre: string]: any[] } = {};
+  loadingGenres: { [genre: string]: boolean } = {};
+
+  // Track router navigation
+  private routeSubscription: Subscription | null = null;
+  private lastVisit: number = 0;
 
   constructor(
     private gameService: GameService,
     private recommendationService: RecommendationService,
     private router: Router,
-    private authService: AuthService // Inject AuthService
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
-    this.isAuthenticated = this.authService.isLoggedIn(); // Check if user is authenticated
+    this.isAuthenticated = this.authService.isLoggedIn();
+    
+    // Set last visit timestamp
+    this.lastVisit = Date.now();
+    
+    // Subscribe to router events to detect when returning to home
+    this.routeSubscription = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      // Only refresh if returning to home from another route
+      if ((event.url === '/' || event.url === '/home') && this.lastVisit > 0) {
+        console.log('Returning to home page, refreshing genre games');
+        this.refreshAllGenreGames();
+      }
+      // Update last visit timestamp
+      this.lastVisit = Date.now();
+    });
+    
+    // Solo cargamos juegos por género si el usuario está autenticado
     if (this.isAuthenticated) {
-      this.loadRecommendedGames();
-      this.loadRecommendationsByGenres(this.defaultGenres);
+      this.loadGamesByGenres();
     }
-    this.loadPopularGames(); // Popular games are visible to everyone
-    this.loadRandomGames(); // Load initial random games
+    
+    this.loadPopularGames();
+    this.loadRandomGames();
+  }
+  
+  ngOnDestroy(): void {
+    // Cleanup subscription to prevent memory leaks
+    if (this.routeSubscription) {
+      this.routeSubscription.unsubscribe();
+      this.routeSubscription = null;
+    }
   }
 
-  // Método para cargar recomendaciones basadas en géneros
-  loadRecommendationsByGenres(genres: string[], maxPrice?: number): void {
-    this.isLoading = true;
-    this.errorMessage = null;
+  /**
+   * Fuerza la recarga de todos los juegos por género
+   */
+  refreshAllGenreGames(): void {
+    if (this.isAuthenticated) {
+      // Reset data and force reload
+      this.gamesByGenre = {};
+      this.loadGamesByGenres(true);
+    }
+  }
+
+  /**
+   * Carga juegos para cada género en la lista
+   * @param forceRefresh Si es true, fuerza la recarga ignorando la caché
+   */
+  loadGamesByGenres(forceRefresh: boolean = false): void {
+    this.genresList.forEach(genre => {
+      this.loadGamesByGenre(genre, forceRefresh);
+    });
+  }
+
+  /**
+   * Carga juegos aleatorios para un género específico
+   * @param genre Género de juegos a cargar
+   * @param forceRefresh Si es true, fuerza la recarga ignorando la caché
+   */
+  loadGamesByGenre(genre: string, forceRefresh: boolean = false): void {
+    this.loadingGenres[genre] = true;
     
-    this.recommendationService.getRecommendationsByGenres(genres, maxPrice)
+    // Generate a timestamp to force new data from the server
+    const timestamp = forceRefresh ? Date.now() : undefined;
+    
+    this.recommendationService.getRecommendationsByGenres([genre], undefined, 3, timestamp)
       .pipe(
         catchError(error => {
-          this.errorMessage = 'Error al cargar recomendaciones. Por favor, inténtalo de nuevo.';
-          console.error('Error cargando recomendaciones:', error);
+          console.error(`Error cargando juegos del género ${genre}:`, error);
           return of([]);
         }),
         finalize(() => {
-          this.isLoading = false;
+          this.loadingGenres[genre] = false;
         })
       )
       .subscribe(games => {
-        this.recommendedByGenres = games;
+        this.gamesByGenre[genre] = games;
       });
   }
 
   /**
    * Navega al detalle del juego
    * @param gameId ID del juego a ver
+   * @param game Objeto del juego para determinar si es de Steam
    */
-  navigateToGameDetail(gameId: number): void {
-    this.router.navigate(['/game', gameId]);
+  navigateToGameDetail(gameId: number, game?: any): void {
+    // Determine if the game is from Steam based on its structure
+    const isSteamGame = game && (game.nombre !== undefined || game.imagen_principal !== undefined);
+    
+    console.log('Navigating to game detail:', gameId, isSteamGame ? '(Steam game)' : '(RAWG game)');
+    
+    if (isSteamGame) {
+      // Use the Steam game endpoint
+      this.router.navigate(['/steam-game', gameId]);
+    } else {
+      // Use the standard RAWG game endpoint
+      this.router.navigate(['/game', gameId]);
+    }
   }
 
-  // Método para cargar juegos recomendados
-  loadRecommendedGames(): void {
-    this.isLoadingRecommended = true;
-    this.errorRecommended = null;
-    
-    // Obtener juegos aleatorios como recomendados
-    this.gameService.getRandomGames(4)
-      .pipe(
-        catchError(error => {
-          this.errorRecommended = 'Error al cargar juegos recomendados.';
-          console.error('Error cargando juegos recomendados:', error);
-          return of({ count: 0, results: [] });
-        }),
-        finalize(() => {
-          this.isLoadingRecommended = false;
-        })
-      )
-      .subscribe(response => {
-        if (response && response.results && response.results.length > 0) {
-          // Mapear los resultados al formato esperado por la UI
-          this.recommendedGames = response.results.map((game: RawGameData) => ({
-            id: game.id || 0,
-            name: game.name || 'Juego sin nombre',
-            background_image: game.background_image || 'assets/images/placeholder.jpg',
-            released: game.released || '',
-            rating: typeof game.rating === 'number' ? game.rating : 0,
-            genres: Array.isArray(game.genres) ? game.genres : [],
-            price: typeof game.price === 'number' ? game.price : 19.99
-          }));
-        } else {
-          this.recommendedGames = [];
-          this.errorRecommended = 'No se pudieron cargar juegos recomendados.';
-        }
-      });
+  /**
+   * Determina si se debe mostrar el rating de un juego
+   * No mostramos el rating para juegos de Steam
+   */
+  shouldShowRating(game: any): boolean {
+    // Si es un juego de Steam, no se muestra el rating
+    return !this.isFromSteam(game) && !!game.rating;
+  }
+
+  /**
+   * Verifica si un juego proviene de Steam
+   */
+  isFromSteam(game: any): boolean {
+    // Verificar si tiene properties específicas de la estructura de Steam
+    return (game.nombre !== undefined || game.imagen_principal !== undefined);
+  }
+
+  /**
+   * Obtiene los géneros de un juego, independientemente de su estructura
+   */
+  getGameGenres(game: any): string[] {
+    if (game.genres) {
+      // Si es un juego de RAWG
+      return game.genres.map((g: any) => typeof g === 'string' ? g : g.name);
+    } else if (game.generos) {
+      // Si es un juego de Steam
+      return game.generos;
+    }
+    return [];
   }
 
   loadPopularGames(): void {
     this.isLoadingPopular = true;
     this.errorPopular = null;
     
-    // Obtener juegos en tendencia como populares - increased to 20 games
+    // Obtener juegos en tendencia como populares
     this.gameService.getTrendingGames(1, 9)
       .pipe(
         catchError(error => {
@@ -181,7 +242,6 @@ export class HomeComponent implements OnInit {
     this.isLoadingRandomGames = true;
     
     // Add a random parameter to ensure we get different games each time
-    const randomSeed = Math.floor(Math.random() * 10000);
     this.gameService.getRandomGamesWithPage(this.randomGamesPage, 10)
       .subscribe({
         next: (response) => {

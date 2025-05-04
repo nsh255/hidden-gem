@@ -1,16 +1,68 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  
-  constructor(private http: HttpClient, private authService: AuthService) { }
-  
+  private apiUrl = environment.apiUrl; // Should point to your backend, e.g., 'http://localhost:8000'
+  private favoriteApiUrl = '/api/favorite-games';
+
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
+
+  /**
+   * Obtiene información del perfil del usuario
+   * @returns Observable con los datos del usuario
+   */
+  getUserProfile(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/users/me`);
+  }
+
+  /**
+   * Actualiza el perfil del usuario
+   * @param userData Datos a actualizar (nick, precio_max)
+   * @returns Observable con la respuesta
+   */
+  updateUserProfile(userData: { nick?: string; precio_max?: number }): Observable<any> {
+    console.debug('Updating user profile with data:', userData);
+    
+    // Use the AuthService to get the token consistently
+    const token = this.authService.getToken();
+    
+    if (!token) {
+      console.error('No authentication token found');
+      return throwError(() => new Error('User not authenticated'));
+    }
+    
+    // Create headers with the authorization token
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    
+    return this.http.patch(`${this.apiUrl}/users/me`, userData, { headers }).pipe(
+      tap(response => {
+        console.debug('Profile update successful, updating local data');
+        // Update user data in AuthService
+        this.authService.updateUserData(userData);
+      }),
+      catchError(error => {
+        console.error('Error updating user profile:', error);
+        if (error.status === 401) {
+          return throwError(() => new Error('Sesión expirada. Por favor, inicia sesión nuevamente.'));
+        }
+        return throwError(() => new Error('Error al actualizar el perfil'));
+      })
+    );
+  }
+
   /**
    * Añade un juego a los favoritos del usuario actual
    * @param gameId ID del juego a añadir a favoritos
@@ -25,7 +77,16 @@ export class UserService {
    * Alias para addGameToFavorites para mantener consistencia de nomenclatura
    */
   addFavorite(gameId: number): Observable<any> {
-    return this.addGameToFavorites(gameId);
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+    
+    // Use the favoriteApiUrl variable that already includes /api prefix
+    return this.http.post(`${this.apiUrl}/api/favorite-games/add-favorite`, {
+      usuario_id: userId,
+      juego_id: gameId
+    });
   }
   
   /**
@@ -44,7 +105,18 @@ export class UserService {
    * Alias para removeGameFromFavorites para mantener consistencia de nomenclatura
    */
   removeFavorite(gameId: number): Observable<any> {
-    return this.removeGameFromFavorites(gameId);
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+    
+    // Use the favoriteApiUrl variable that already includes /api prefix
+    return this.http.delete(`${this.apiUrl}/api/favorite-games/remove-favorite`, {
+      body: {
+        usuario_id: userId,
+        juego_id: gameId
+      }
+    });
   }
   
   /**
@@ -61,7 +133,7 @@ export class UserService {
     }
     
     // Implementación mejorada: hacemos una petición específica para verificar si es favorito
-    return this.http.get<boolean>(`/api/favorite-games/check/${userId}/${gameId}`).pipe(
+    return this.http.get<boolean>(`${this.apiUrl}/api/favorite-games/check/${userId}/${gameId}`).pipe(
       catchError(error => {
         console.error('Error al verificar estado de favorito:', error);
         
@@ -80,7 +152,9 @@ export class UserService {
    */
   getFavoriteGames(): Observable<any[]> {
     const userId = this.authService.getCurrentUserId();
-    return this.http.get<any[]>(`/api/favorite-games/user/${userId}`);
+    if (!userId) return new Observable(observer => observer.next([]));
+    
+    return this.http.get<any[]>(`${this.apiUrl}/api/favorite-games/user/${userId}`);
   }
   
   /**
@@ -88,28 +162,5 @@ export class UserService {
    */
   getFavorites(): Observable<any[]> {
     return this.getFavoriteGames();
-  }
-
-  /**
-   * Updates the user profile information
-   * @param userData User data to update
-   * @returns Observable with the updated user data
-   */
-  updateUserProfile(userData: { nick?: string; precio_max?: number }): Observable<any> {
-    // The correct endpoint is /api/users/me which already exists in the backend
-    return this.http.patch('/api/users/me', userData).pipe(
-      tap(response => {
-        // Update local user data
-        const currentUser = this.authService.getUserData();
-        if (currentUser) {
-          const updatedUser = { ...currentUser, ...userData };
-          localStorage.setItem('user_data', JSON.stringify(updatedUser));
-        }
-      }),
-      catchError(error => {
-        console.error('Error updating user profile:', error);
-        return throwError(() => new Error('Error al actualizar el perfil'));
-      })
-    );
   }
 }

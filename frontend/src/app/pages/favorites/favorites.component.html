@@ -16,13 +16,19 @@
     <button class="btn btn-primary" (click)="loadFavoriteGames()">Reintentar</button>
   </div>
 
-  <!-- Mensaje de "sin favoritos" -->
-  <div class="no-favorites glass-container" *ngIf="!isLoading && !errorMessage && favoriteGames.length === 0">
+  <!-- Mensaje de "sin favoritos" estilizado -->
+  <div class="no-favorites glass-container empty-favorites-container" *ngIf="!isLoading && !errorMessage && favoriteGames.length === 0">
     <div class="empty-state">
-      <div class="empty-icon">♡</div>
-      <h2>Aún no has añadido juegos favoritos</h2>
-      <p>Explora juegos y marca tus favoritos para verlos aquí</p>
-      <button class="btn btn-primary" routerLink="/home">Explorar juegos</button>
+      <div class="empty-icon-container">
+        <span class="empty-icon pulse-animation">♥</span>
+      </div>
+      <h2 class="empty-title">No tienes juegos favoritos</h2>
+      <p class="empty-message">Explora la colección y guarda tus juegos preferidos aquí</p>
+      <div class="empty-actions">
+        <button class="btn btn-primary btn-lg" routerLink="/home">
+          <i class="material-icons">search</i> Explorar juegos
+        </button>
+      </div>
     </div>
   </div>
 

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
@@ -56,31 +56,45 @@ export class AuthComponent implements OnInit {
       this.isLoading = true;
       this.errorMessage = null;
       
-      const { email, password } = this.loginForm.value;
+      // Get values safely using the get method
+      const email = this.loginForm.get('email')?.value || '';
+      const password = this.loginForm.get('password')?.value || '';
       
-      this.authService.login(email, password)
+      console.debug('Auth component submitting login for:', email);
+      
+      // Add clear debugging to track the login flow
+      console.debug('Login data being sent:', { email, password: '********' });
+      
+      this.authService.login({ email, password })
         .subscribe({
-          next: () => {
+          next: (response) => {
+            console.debug('Login successful in auth component, response:', response);
             this.isLoading = false;
+            
             // Redirigir a la URL de retorno o a la página principal
             const returnUrl = localStorage.getItem('returnUrl') || '/';
             localStorage.removeItem('returnUrl');
             this.router.navigateByUrl(returnUrl);
           },
-          error: (error: HttpErrorResponse) => {
+          error: (error: any) => {
             this.isLoading = false;
+            console.error('Login error in auth component:', error);
+            
             if (error.status === 401) {
               this.errorMessage = 'Credenciales incorrectas. Por favor, verifica tu email y contraseña.';
+            } else if (error.status === 422) {
+              this.errorMessage = 'Formato de datos incorrecto. Por favor, verifica tu email y contraseña.';
             } else if (error.error && error.error.detail) {
               this.errorMessage = error.error.detail;
+            } else if (error instanceof Error) {
+              this.errorMessage = error.message;
             } else {
               this.errorMessage = 'Error al iniciar sesión. Por favor, inténtalo de nuevo.';
             }
-            console.error('Error de login', error);
           }
         });
     } else {
-      // Marcar todos los campos como touched para mostrar errores de validación
+      // Mark all fields as touched to show validation errors
       Object.keys(this.loginForm.controls).forEach(key => {
         const control = this.loginForm.get(key);
         control?.markAsTouched();

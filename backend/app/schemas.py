@@ -143,3 +143,26 @@ class Review(ReviewBase):
     created_at: datetime
     class Config:
         from_attributes = True  # antes era orm_mode = True
+
+# Define the structure for game results in paginated response
+class GameResult(BaseModel):
+    id: int
+    name: str
+    background_image: Optional[str] = None
+    released: Optional[str] = None
+    rating: Optional[float] = 0
+    genres: List[Dict[str, Any]] = []
+    price: Optional[float] = None
+    
+    class Config:
+        from_attributes = True  # This was formerly known as orm_mode in Pydantic v1
+
+# Paginated games response schema
+class PaginatedGames(BaseModel):
+    count: int
+    next: Optional[str] = None
+    previous: Optional[str] = None
+    results: List[GameResult] = []
+    
+    class Config:
+        from_attributes = True

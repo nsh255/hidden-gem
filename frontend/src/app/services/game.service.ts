@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 // Interfaz para la respuesta paginada de juegos
@@ -74,7 +74,86 @@ export class GameService {
    * @returns Observable con los detalles del juego
    */
   getGameById(id: string): Observable<GameDetails> {
-    return this.http.get<GameDetails>(`/api/rawg/game/${id}`);
+    // Intentar primero con RAWG
+    return this.http.get<GameDetails>(`/api/rawg/game/${id}`).pipe(
+      catchError(error => {
+        console.warn(`Error obteniendo el juego de RAWG (ID: ${id})`, error);
+        
+        // Si falla, intentar obtener el juego de Steam como fallback
+        return this.getSteamGameById(parseInt(id)).pipe(
+          catchError(steamError => {
+            console.error(`Error obteniendo el juego de Steam también (ID: ${id})`, steamError);
+            // Reenviar el error original si ambos fallan
+            throw error;
+          })
+        );
+      })
+    );
+  }
+
+  /**
+   * Obtiene los detalles de un juego de Steam por su ID
+   * @param id ID del juego de Steam
+   * @returns Observable con los detalles del juego 
+   */
+  getSteamGameById(id: number): Observable<GameDetails> {
+    console.debug('Fetching Steam game with ID:', id);
+    
+    return this.http.get<any>(`/api/steam-games/${id}`).pipe(
+      map(steamGame => {
+        // Convert the Steam game format to GameDetails format
+        return {
+          id: steamGame.id,
+          name: steamGame.nombre,
+          background_image: steamGame.imagen_principal,
+          description: steamGame.descripcion || '',
+          released: '', // Steam doesn't provide this
+          rating: 0,    // No rating for Steam games
+          genres: steamGame.generos?.map((name: string, index: number) => ({
+            id: index + 1, // Generate artificial IDs
+            name
+          })) || [],
+          tags: steamGame.tags?.map((name: string, index: number) => ({
+            id: index + 1,
+            name
+          })) || [],
+          platforms: [],
+          stores: [],
+          price: steamGame.precio
+        };
+      }),
+      catchError(error => {
+        console.error('Error fetching Steam game:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Convierte un juego de Steam al formato GameDetails
+   * @param steamGame Juego de Steam a convertir
+   * @returns El juego en formato GameDetails
+   */
+  private convertSteamGameToGameDetails(steamGame: SteamGame): GameDetails {
+    return {
+      id: steamGame.id,
+      name: steamGame.nombre,
+      background_image: steamGame.imagen_principal,
+      description: steamGame.descripcion || '',
+      released: '',  // Steam no proporciona esta información
+      rating: 0,     // No tenemos rating para juegos de Steam
+      genres: steamGame.generos?.map((name, index) => ({
+        id: index + 1,  // Generamos IDs artificiales
+        name
+      })) || [],
+      tags: steamGame.tags?.map((name, index) => ({
+        id: index + 1,
+        name
+      })) || [],
+      platforms: [],  // No tenemos esta información para juegos de Steam
+      stores: [],     // No tenemos esta información para juegos de Steam
+      price: steamGame.precio
+    };
   }
 
   /**
@@ -347,6 +426,82 @@ export class GameService {
       catchError(error => {
         console.error('Error fetching random games with pagination:', error);
         return of({ results: [] });
+      })
+    );
+  }
+
+  /**
+   * Obtiene juegos aleatorios filtrados por género
+   * @param genre Género de juegos a obtener
+   * @param count Número de juegos a obtener
+   * @returns Observable con lista de juegos del género especificado
+   */
+  getRandomGamesByGenre(genre: string, count: number = 3): Observable<any[]> {
+    // Crear un identificador único para evitar caché
+    const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Parámetros de la solicitud
+    const params = new HttpParams()
+      .set('genre', genre)
+      .set('count', count.toString())
+      .set('random', 'true')
+      .set('_t', uniqueId);
+    
+    // Hacer la solicitud al endpoint
+    return this.http.get<any>('/api/games/by-genre', { 
+      params, 
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      } 
+    }).pipe(
+      map(response => {
+        if (response && response.results) {
+          return response.results;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error(`Error fetching games by genre ${genre}:`, error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Obtiene juegos aleatorios filtrados por múltiples géneros
+   * @param genres Lista de géneros de juegos a obtener
+   * @param count Número de juegos a obtener
+   * @returns Observable con lista de juegos de los géneros especificados
+   */
+  getRandomGamesByGenres(genres: string[], count: number = 5): Observable<any[]> {
+    // Crear un identificador único para evitar caché
+    const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Convertir géneros a parámetros de consulta
+    let params = new HttpParams()
+      .set('count', count.toString())
+      .set('random', 'true')
+      .set('_t', uniqueId);
+    
+    // Añadir cada género como un parámetro separado
+    genres.forEach(genre => {
+      params = params.append('genres', genre);
+    });
+    
+    // Usar el endpoint de recomendaciones por géneros que ya existe
+    return this.http.get<any>('/api/recommendations/by-genres', {
+      params,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    }).pipe(
+      catchError(error => {
+        console.error(`Error fetching random games by genres: ${genres.join(', ')}`, error);
+        return of([]);
       })
     );
   }

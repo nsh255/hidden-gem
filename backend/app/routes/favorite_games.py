@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from ..database import get_db
 from .. import models, schemas
+from ..utils.rawg_api import rawg_api  # Add this import
 
 router = APIRouter(
     prefix="/favorite-games",
@@ -39,13 +40,41 @@ def add_favorite_to_user(favorite: schemas.FavoritoAdd, db: Session = Depends(ge
     if not user:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     
-    # Verificar si el juego existe
+    # Verificar si el juego existe en nuestra base de datos
     game = db.query(models.JuegosFavoritosDeUsuarioQueProvienenDeRawg).filter(
         models.JuegosFavoritosDeUsuarioQueProvienenDeRawg.id == favorite.juego_id
     ).first()
     
+    # Si el juego no existe en nuestra base, intentamos obtenerlo de RAWG y crearlo
     if not game:
-        raise HTTPException(status_code=404, detail="Juego no encontrado")
+        try:
+            # Obtener datos del juego desde RAWG API
+            game_data = rawg_api.get_game(favorite.juego_id)
+            if not game_data:
+                raise HTTPException(status_code=404, detail="Juego no encontrado en RAWG")
+            
+            # Extraer géneros y tags
+            generos = [genre["name"] for genre in game_data.get("genres", [])]
+            tags = [tag["name"] for tag in game_data.get("tags", [])] if "tags" in game_data else []
+            
+            # Crear el juego en nuestra base de datos
+            game = models.JuegosFavoritosDeUsuarioQueProvienenDeRawg(
+                id=favorite.juego_id,  # Usar el mismo ID que en RAWG
+                nombre=game_data["name"],
+                imagen=game_data.get("background_image", ""),
+                descripcion=game_data.get("description", ""),
+                generos=generos,
+                tags=tags
+            )
+            
+            db.add(game)
+            db.commit()
+            db.refresh(game)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error al crear el juego: {str(e)}"
+            )
     
     # Verificar si ya es favorito
     if game in user.juegos_favoritos:

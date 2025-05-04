@@ -16,23 +16,35 @@
     <button class="btn btn-primary" (click)="loadPersonalizedRecommendations()">Reintentar</button>
   </div>
 
-  <!-- Mensaje de "sin favoritos" -->
-  <div class="no-recommendations glass-container" *ngIf="!isLoading && noFavoritesMessage">
+  <!-- Mensaje de "sin favoritos" estilizado -->
+  <div class="no-recommendations glass-container empty-recommendations-container" *ngIf="!isLoading && noFavoritesMessage">
     <div class="empty-state">
-      <div class="empty-icon">⭐</div>
-      <h2>Añade juegos a favoritos</h2>
-      <p>Necesitamos que marques juegos como favoritos para poder generar recomendaciones personalizadas</p>
-      <button class="btn btn-primary" routerLink="/home">Explorar juegos</button>
+      <div class="empty-icon-container">
+        <span class="empty-icon pulse-animation">⭐</span>
+      </div>
+      <h2 class="empty-title">Añade juegos a favoritos</h2>
+      <p class="empty-message">Necesitamos que marques juegos como favoritos para poder generar recomendaciones personalizadas</p>
+      <div class="empty-actions">
+        <button class="btn btn-primary btn-lg" routerLink="/home">
+          <i class="material-icons">home</i> Ir a la página principal
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Mensaje de "sin recomendaciones" -->
-  <div class="no-recommendations glass-container" *ngIf="!isLoading && !errorMessage && !noFavoritesMessage && recommendedGames.length === 0">
+  <div class="no-recommendations glass-container empty-recommendations-container" *ngIf="!isLoading && !errorMessage && !noFavoritesMessage && recommendedGames.length === 0">
     <div class="empty-state">
-      <div class="empty-icon">🔍</div>
-      <h2>No encontramos recomendaciones</h2>
-      <p>Explora más juegos para obtener recomendaciones personalizadas</p>
-      <button class="btn btn-primary" routerLink="/home">Explorar juegos</button>
+      <div class="empty-icon-container">
+        <span class="empty-icon pulse-animation">🔍</span>
+      </div>
+      <h2 class="empty-title">No encontramos recomendaciones</h2>
+      <p class="empty-message">Explora más juegos para obtener recomendaciones personalizadas</p>
+      <div class="empty-actions">
+        <button class="btn btn-primary btn-lg" routerLink="/home">
+          <i class="material-icons">home</i> Ir a la página principal
+        </button>
+      </div>
     </div>
   </div>
 
@@ -57,5 +69,16 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Indicador de carga al hacer scroll -->
+  <div class="loading-more-container" *ngIf="loadingMore">
+    <div class="loader"></div>
+    <p>Cargando más recomendaciones...</p>
+  </div>
+
+  <!-- Mensaje de fin de recomendaciones -->
+  <div class="end-of-recommendations" *ngIf="allLoaded && recommendedGames.length > 0">
+    <p>Has llegado al final de las recomendaciones 🎮</p>
   </div>
 </div>

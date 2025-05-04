@@ -27,26 +27,37 @@ sexual_keywords = [
     "hookup", "affair", "50 shades", "topless", "onlyfans", "dress up"
 ]
 
-# Nueva función para verificar si un juego tiene contenido sexual
+# Modificación de la función para ser menos estricta
 def has_sexual_content(game):
     """Comprueba si un juego contiene palabras clave sexuales en su título o descripción"""
+    # Lista de juegos conocidos que son seguros para mostrar 
+    safe_game_ids = [3328, 4200, 5286, 12020, 22509, 28, 4291, 32, 802, 58175]
+    
+    # Si el juego está en nuestra lista segura, permitirlo
+    if game.get("id") in safe_game_ids:
+        return False
+    
+    # Lista de palabras clave de alta prioridad - si aparecen en el título, bloquear
+    high_priority_keywords = [
+        "porn", "hentai", "xxx", "nsfw", "erotic", "sexual content",
+        "nudity", "adult only", "strip", "sex"
+    ]
+    
     # Verificar explícitamente el título (prioridad alta)
     if game.get("name"):
         game_name = game.get("name", "").lower()
-        if any(keyword in game_name for keyword in sexual_keywords):
+        if any(keyword in game_name for keyword in high_priority_keywords):
             return True
     
-    # Verificar la descripción completa
+    # Para la descripción, sólo verificar coincidencias exactas de palabras clave de alta prioridad
     if game.get("description"):
         game_desc = game.get("description", "").lower()
-        if any(keyword in game_desc for keyword in sexual_keywords):
+        # Solo bloquear si hay múltiples coincidencias o coincidencias exactas
+        matches = sum(1 for keyword in high_priority_keywords if keyword in game_desc)
+        if matches >= 2:  # Requiere al menos 2 coincidencias para bloquear
             return True
     
-    # Verificar la combinación de título y descripción
-    combined_text = (game.get("name", "").lower() + " " + game.get("description", "").lower())
-    if any(keyword in combined_text for keyword in sexual_keywords):
-        return True
-    
+    # Solo bloquear si hay coincidencias claras
     return False
 
 @router.get("/search", response_model=dict)

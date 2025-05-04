@@ -361,3 +361,65 @@ def get_genres(db: Session = Depends(get_db)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener géneros: {str(e)}")
+
+@router.get("/by-genre", response_model=schemas.PaginatedGames)
+def get_games_by_genre(
+    genre: str,
+    count: int = Query(3, ge=1, le=10),
+    random: bool = Query(False),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtiene juegos por género, opcionalmente devuelve resultados aleatorios.
+    
+    - **genre**: Género de juegos a filtrar
+    - **count**: Número de juegos a devolver
+    - **random**: Si es True, devuelve resultados aleatorios
+    """
+    try:
+        # Obtener juegos de Steam que coincidan con el género
+        query = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones)
+        
+        # Filtrar por género (usando LIKE para hacer una búsqueda parcial)
+        matches = []
+        all_games = query.all()
+        
+        for game in all_games:
+            if not game.generos:
+                continue
+                
+            # Verificar si el género solicitado está en la lista de géneros del juego
+            for game_genre in game.generos:
+                if genre.lower() in game_genre.lower():
+                    matches.append(game)
+                    break
+        
+        # Si se solicitan resultados aleatorios, mezclar la lista
+        if random and matches:
+            random.shuffle(matches)
+        
+        # Limitar la cantidad de resultados
+        results = matches[:count]
+        
+        # Mapear a formato esperado
+        formatted_results = []
+        for game in results:
+            formatted_results.append({
+                "id": game.id,
+                "name": game.nombre,
+                "background_image": game.imagen_principal,
+                "released": "",
+                "rating": 0,  # No incluimos rating para juegos de Steam
+                "genres": [{"id": 0, "name": genre} for genre in game.generos] if game.generos else [],
+                "price": game.precio
+            })
+        
+        return {
+            "count": len(formatted_results),
+            "next": None,
+            "previous": None,
+            "results": formatted_results
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo juegos por género: {str(e)}")

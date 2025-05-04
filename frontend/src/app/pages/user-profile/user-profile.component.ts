@@ -30,10 +30,23 @@ export class UserProfileComponent implements OnInit {
     // Get user data
     this.user = this.authService.getUserData();
     
+    // Check if user is logged in
+    if (!this.authService.isLoggedIn()) {
+      console.error('User is not logged in, redirecting to login page');
+      this.errorMessage = 'Sesión no válida. Por favor, inicia sesión nuevamente.';
+      setTimeout(() => {
+        this.router.navigate(['/auth']);
+      }, 3000);
+      return;
+    }
+    
     if (!this.user) {
+      console.error('No user data found, redirecting to auth page');
       this.router.navigate(['/auth']);
       return;
     }
+    
+    console.debug('User data loaded:', this.user);
     
     // Initialize form with current values
     this.profileForm = this.fb.group({
@@ -49,6 +62,14 @@ export class UserProfileComponent implements OnInit {
       this.successMessage = null;
       
       const { nick, precio_max } = this.profileForm.value;
+      console.debug('Submitting form with values:', { nick, precio_max });
+      
+      // Check if token exists
+      if (!this.authService.getToken()) {
+        this.errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
+        this.isLoading = false;
+        return;
+      }
       
       this.userService.updateUserProfile({ nick, precio_max })
         .subscribe({
@@ -68,6 +89,13 @@ export class UserProfileComponent implements OnInit {
             this.isLoading = false;
             this.errorMessage = error.message || 'Error al actualizar el perfil';
             console.error('Error updating profile:', error);
+            
+            // If it's an authentication error, redirect to login
+            if (error.message.includes('sesión') || error.message.includes('autenti')) {
+              setTimeout(() => {
+                this.router.navigate(['/auth']);
+              }, 3000);
+            }
           }
         });
     } else {

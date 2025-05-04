@@ -30,5 +30,9 @@ export const routes: Routes = [
     component: UserProfileComponent,
     canActivate: [authGuard]  // Protege la ruta para usuarios autenticados
   },
+  {
+    path: 'steam-game/:id',
+    loadComponent: () => import('./pages/game-detail/game-detail.component').then(m => m.GameDetailComponent)
+  },
   { path: '**', redirectTo: '' }  // Redireccionar a home para rutas no encontradas
 ];

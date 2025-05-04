@@ -72,13 +72,13 @@
     <!-- Sección de juegos similares -->
     <div class="glass-container similar-games" *ngIf="similarGames && similarGames.length > 0">
       <div class="similar-games-header">
-        <h2>Juegos similares que te podrían gustar</h2>
+        <h2>Juegos similares por géneros</h2>
         <div class="similar-games-navigation">
           <button class="nav-button prev" [disabled]="currentSimilarPage === 1" (click)="navigateSimilarGames('prev')">
             <span>←</span>
           </button>
           <span class="page-indicator">Página {{currentSimilarPage}}</span>
-          <button class="nav-button next" [disabled]="!hasMoreSimilarGames" (click)="navigateSimilarGames('next')">
+          <button class="nav-button next" (click)="navigateSimilarGames('next')">
             <span>→</span>
           </button>
         </div>

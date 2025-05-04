@@ -8,28 +8,44 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
 
-export const AuthInterceptor: HttpInterceptorFn = (req, next) => {
-  // Obtener el token del localStorage
-  const token = localStorage.getItem('auth_token');
-  
-  // Si existe un token, añadirlo a las cabeceras de la petición
-  if (token) {
-    // Clonar la petición original y añadir el encabezado de autorización
-    const authReq = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  constructor(private router: Router) {}
+
+  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    // Don't add token for auth requests to avoid interference with login/register
+    if (request.url.includes('/api/auth/')) {
+      return next.handle(request);
+    }
     
-    // Continuar con la petición modificada
-    return next(authReq);
+    // Get the auth token from localStorage
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      // Clone the request and add the Authorization header
+      const authReq = request.clone({
+        headers: request.headers.set('Authorization', `Bearer ${token}`)
+      });
+      
+      // Handle the authenticated request and catch 401/403 errors
+      return next.handle(authReq).pipe(
+        catchError((error: HttpErrorResponse) => {
+          // If we get a 401 Unauthorized or 403 Forbidden response,
+          // redirect to the login page
+          if (error.status === 401 || error.status === 403) {
+            console.error('Authentication error:', error.status);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_data');
+            this.router.navigate(['/auth']);
+          }
+          return throwError(() => error);
+        })
+      );
+    }
+    
+    // If no token, proceed with the original request
+    return next.handle(request);
   }
-  
-  // Si no hay token, continuar con la petición original
-  return next(req);
-};
+}

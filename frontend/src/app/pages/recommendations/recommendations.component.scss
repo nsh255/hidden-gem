@@ -9,6 +9,7 @@
   margin-bottom: 2rem;
   text-align: center;
   border-radius: 1rem;
+  color: #000; // Texto en negro
 }
 
 .glass-container {
@@ -21,12 +22,12 @@
 .recommendations-title {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: #fff;
+  color: #000; // Texto en negro
 }
 
 .recommendations-subtitle {
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #000; // Texto en negro
 }
 
 .recommendations-grid {
@@ -138,7 +139,7 @@
   align-items: center;
   justify-content: center;
   padding: 3rem;
-  color: #fff;
+  color: #000; // Texto en negro
 }
 
 .loader {
@@ -149,6 +150,10 @@
   height: 3rem;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
+}
+
+.loading-container p {
+  color: #000; // Asegurando que el texto del párrafo sea negro
 }
 
 @keyframes spin {
@@ -204,4 +209,134 @@
   .recommendations-title {
     font-size: 2rem;
   }
+}
+
+// Estilos para el mensaje de recomendaciones vacías
+.empty-recommendations-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  margin: 30px auto;
+  max-width: 600px;
+  background: rgba(17, 25, 40, 0.7);
+  backdrop-filter: blur(16px);
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.125);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  width: 100%;
+}
+
+.empty-icon-container {
+  margin-bottom: 1.5rem;
+}
+
+.empty-icon {
+  font-size: 5rem;
+  display: inline-block;
+  color: #ffca28; /* Color amarillo para el ícono de estrella */
+  opacity: 0.8;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 10px rgba(255, 202, 40, 0.7);
+}
+
+.pulse-animation {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+}
+
+.empty-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #ffca28, #ff7043);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.empty-message {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.empty-actions {
+  margin-top: 1.5rem;
+}
+
+.empty-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  padding: 0.8rem 1.5rem;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ffca28, #ff7043);
+  border: none;
+}
+
+.empty-actions .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 202, 40, 0.4);
+}
+
+.empty-actions .btn i {
+  font-size: 1.3rem;
+}
+
+// Indicador de carga adicional
+.loading-more-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  margin-top: 1rem;
+  color: #000; // Texto en negro como solicitaste
+}
+
+.loading-more-container .loader {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 4px solid #3498db;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+// Mensaje de fin de recomendaciones
+.end-of-recommendations {
+  text-align: center;
+  padding: 2rem;
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #000; // Texto en negro 
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }

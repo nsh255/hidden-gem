@@ -37,78 +37,40 @@
     </div>
   </header>
 
+  <!-- Nueva sección: Juegos por géneros (solo para usuarios registrados) -->
   <section class="content-section" *ngIf="isAuthenticated">
     <div class="section-header">
-      <h2 class="section-title">Juegos Recomendados</h2>
-      <p class="section-subtitle">Basado en tus preferencias</p>
+      <h2 class="section-title">Descubre por géneros</h2>
+      <p class="section-subtitle">Explora juegos según tus géneros favoritos</p>
     </div>
 
-    <!-- Indicador de carga -->
-    <div class="loading-container" *ngIf="isLoadingRecommended">
-      <div class="loader"></div>
-      <p>Cargando juegos recomendados...</p>
-    </div>
-
-    <!-- Mensaje de error -->
-    <div class="error-message glass-container" *ngIf="errorRecommended">
-      <p>{{ errorRecommended }}</p>
-      <button class="btn btn-primary" (click)="loadRecommendedGames()">Reintentar</button>
-    </div>
-
-    <div class="game-grid" *ngIf="!isLoadingRecommended && recommendedGames.length > 0">
-      <!-- Iteramos sobre los juegos recomendados -->
-      <div class="glass-card game-card" *ngFor="let game of recommendedGames">
-        <div class="game-image-container glass-image-container">
-          <img [src]="game.background_image" [alt]="game.name" class="game-image">
-          <span class="game-card-rating" *ngIf="game.rating > 0">{{ game.rating.toFixed(1) }}</span>
+    <div *ngFor="let genre of genresList">
+      <div class="genre-section" *ngIf="gamesByGenre[genre] && gamesByGenre[genre].length > 0">
+        <h3 class="genre-title">{{ genre }}</h3>
+        
+        <!-- Indicador de carga por género -->
+        <div class="loading-container" *ngIf="loadingGenres[genre]">
+          <div class="loader"></div>
+          <p>Cargando juegos de {{ genre }}...</p>
         </div>
-        <div class="game-info game-card-body">
-          <h3 class="game-title game-card-title">{{game.name}}</h3>
-          <div class="game-genres">
-            <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{genre.name}}</span>
+
+        <div class="game-grid">
+          <div class="glass-card game-card" *ngFor="let game of gamesByGenre[genre].slice(0, 3)">
+            <div class="game-image-container glass-image-container" (click)="navigateToGameDetail(game.id, game)">
+              <img [src]="game.imagen_principal || game.background_image" [alt]="game.nombre || game.name" class="game-image">
+              <span class="game-card-rating" *ngIf="shouldShowRating(game)">{{ game.rating?.toFixed(1) }}</span>
+            </div>
+            <div class="game-info game-card-body">
+              <h3 class="game-title game-card-title" (click)="navigateToGameDetail(game.id, game)">{{ game.nombre || game.name }}</h3>
+              <div class="game-genres">
+                <span class="genre-tag" *ngFor="let gameGenre of getGameGenres(game).slice(0, 3)">{{ gameGenre }}</span>
+              </div>
+              <div class="game-price game-card-price" *ngIf="game.precio || game.price">
+                {{ (game.precio || game.price) | currency:'USD':'symbol':'1.2-2' }}
+              </div>
+              <button class="btn btn-primary" (click)="navigateToGameDetail(game.id, game); $event.stopPropagation();">Ver más</button>
+            </div>
           </div>
-          <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="content-section" *ngIf="isAuthenticated">
-    <div class="section-header">
-      <h2 class="section-title">Recomendados para ti</h2>
-      <p class="section-subtitle">Basado en tus géneros favoritos: {{ defaultGenres.join(', ') }}</p>
-    </div>
-
-    <!-- Indicador de carga -->
-    <div class="loading-container" *ngIf="isLoading">
-      <div class="loader"></div>
-      <p>Cargando recomendaciones...</p>
-    </div>
-
-    <!-- Mensaje de error -->
-    <div class="error-message glass-container" *ngIf="errorMessage">
-      <p>{{ errorMessage }}</p>
-    </div>
-
-    <!-- Mensaje de no resultados -->
-    <div class="no-results glass-container" *ngIf="!isLoading && !errorMessage && recommendedByGenres.length === 0">
-      <p>No se encontraron juegos para estos géneros. ¡Prueba con otros géneros!</p>
-    </div>
-
-    <!-- Cuadrícula de juegos recomendados por géneros -->
-    <div class="game-grid" *ngIf="recommendedByGenres.length > 0">
-      <div class="glass-card game-card" *ngFor="let game of recommendedByGenres">
-        <div class="game-image-container glass-image-container">
-          <img [src]="game.imagen_principal" [alt]="game.nombre" class="game-image">
-          <span class="game-card-rating" *ngIf="game.puntuacion > 0">{{ (game.puntuacion * 10).toFixed(1) }}</span>
-        </div>
-        <div class="game-info game-card-body">
-          <h3 class="game-title game-card-title">{{ game.nombre }}</h3>
-          <div class="game-genres">
-            <span class="genre-tag" *ngFor="let genre of game.generos.slice(0, 3)">{{ genre }}</span>
-          </div>
-          <div class="game-price game-card-price">{{ formatPrice(game.precio, false) }}</div>
-          <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
         </div>
       </div>
     </div>
@@ -135,17 +97,17 @@
     <div class="game-grid" *ngIf="!isLoadingPopular && popularGames.length > 0">
       <!-- Iteramos sobre los juegos populares -->
       <div class="glass-card game-card" *ngFor="let game of popularGames">
-        <div class="game-image-container glass-image-container">
+        <div class="game-image-container glass-image-container" (click)="navigateToGameDetail(game.id, game)">
           <img [src]="game.background_image" [alt]="game.name" class="game-image">
-          <span class="game-card-rating" *ngIf="game.rating > 0">{{ game.rating.toFixed(1) }}</span>
+          <span class="game-card-rating" *ngIf="shouldShowRating(game)">{{ game.rating.toFixed(1) }}</span>
         </div>
         <div class="game-info game-card-body">
-          <h3 class="game-title game-card-title">{{game.name}}</h3>
+          <h3 class="game-title game-card-title" (click)="navigateToGameDetail(game.id, game)">{{game.name}}</h3>
           <div class="game-genres">
             <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{genre.name}}</span>
           </div>
           <!-- Remove price display for popular games -->
-          <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
+          <button class="btn btn-primary" (click)="navigateToGameDetail(game.id, game); $event.stopPropagation();">Ver más</button>
         </div>
       </div>
     </div>
@@ -165,17 +127,17 @@
 
     <div class="game-grid" *ngIf="randomGames.length > 0">
       <div class="glass-card game-card" *ngFor="let game of randomGames">
-        <div class="game-image-container glass-image-container">
+        <div class="game-image-container glass-image-container" (click)="navigateToGameDetail(game.id, game)">
           <img [src]="game.background_image" [alt]="game.name" class="game-image">
-          <span class="game-card-rating" *ngIf="game.rating > 0">{{ game.rating.toFixed(1) }}</span>
+          <span class="game-card-rating" *ngIf="shouldShowRating(game)">{{ game.rating.toFixed(1) }}</span>
         </div>
         <div class="game-info game-card-body">
-          <h3 class="game-title game-card-title">{{ game.name }}</h3>
+          <h3 class="game-title game-card-title" (click)="navigateToGameDetail(game.id, game)">{{ game.name }}</h3>
           <div class="game-genres">
             <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{ genre.name }}</span>
           </div>
           <!-- Remove price display for random games -->
-          <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
+          <button class="btn btn-primary" (click)="navigateToGameDetail(game.id, game); $event.stopPropagation();">Ver más</button>
         </div>
       </div>
     </div>
