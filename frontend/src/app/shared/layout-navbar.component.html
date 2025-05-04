@@ -19,9 +19,12 @@
       <a routerLink="/register" routerLinkActive="active" class="btn btn-primary">Registrarse</a>
     </ng-container>
     
-    <!-- Botón para usuarios autenticados -->
-    <button *ngIf="authService.isLoggedIn()" (click)="logout()" class="btn btn-secondary">
-      Cerrar sesión
-    </button>
+    <!-- Botones para usuarios autenticados -->
+    <ng-container *ngIf="authService.isLoggedIn()">
+      <a routerLink="/profile" routerLinkActive="active" class="btn btn-secondary">Mi Perfil</a>
+      <button (click)="logout()" class="btn btn-secondary">
+        Cerrar sesión
+      </button>
+    </ng-container>
   </div>
 </nav>

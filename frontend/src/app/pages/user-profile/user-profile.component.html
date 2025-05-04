@@ -1,0 +1,57 @@
+<div class="container">
+  <div class="glass-card profile-card">
+    <h2 class="title">Mi Perfil</h2>
+    
+    <div *ngIf="user">
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="nick">Nombre de usuario</label>
+          <input 
+            type="text" 
+            id="nick" 
+            formControlName="nick" 
+            placeholder="Nombre de usuario"
+            class="glass-input"
+          >
+          <div *ngIf="profileForm.get('nick')?.invalid && profileForm.get('nick')?.touched" class="error-message">
+            <span *ngIf="profileForm.get('nick')?.errors?.['required']">El nombre de usuario es requerido</span>
+            <span *ngIf="profileForm.get('nick')?.errors?.['minlength']">El nombre debe tener al menos 3 caracteres</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="precio_max">Precio máximo a pagar por un juego ($)</label>
+          <input 
+            type="number" 
+            id="precio_max" 
+            formControlName="precio_max" 
+            placeholder="Ej: 20.00"
+            class="glass-input"
+            min="0"
+            max="100"
+            step="5"
+          >
+          <div *ngIf="profileForm.get('precio_max')?.invalid && profileForm.get('precio_max')?.touched" class="error-message">
+            <span *ngIf="profileForm.get('precio_max')?.errors?.['required']">Debes indicar un precio máximo</span>
+            <span *ngIf="profileForm.get('precio_max')?.errors?.['min']">El precio no puede ser negativo</span>
+            <span *ngIf="profileForm.get('precio_max')?.errors?.['max']">El precio máximo no puede superar los $100</span>
+          </div>
+        </div>
+        
+        <div *ngIf="errorMessage" class="error-alert">
+          {{ errorMessage }}
+        </div>
+        
+        <div *ngIf="successMessage" class="success-alert">
+          {{ successMessage }}
+        </div>
+        
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="isLoading || profileForm.invalid">
+            {{ isLoading ? 'Guardando...' : 'Guardar Cambios' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

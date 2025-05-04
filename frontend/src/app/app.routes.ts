@@ -6,6 +6,7 @@ import { GameListComponent } from './pages/game-list/game-list.component';
 import { GameDetailComponent } from './pages/game-detail/game-detail.component';
 import { RecommendationsComponent } from './pages/recommendations/recommendations.component';
 import { FavoritesComponent } from './pages/favorites/favorites.component';
+import { UserProfileComponent } from './pages/user-profile/user-profile.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -22,6 +23,11 @@ export const routes: Routes = [
   { 
     path: 'recommendations', 
     component: RecommendationsComponent,
+    canActivate: [authGuard]  // Protege la ruta para usuarios autenticados
+  },
+  {
+    path: 'profile',
+    component: UserProfileComponent,
     canActivate: [authGuard]  // Protege la ruta para usuarios autenticados
   },
   { path: '**', redirectTo: '' }  // Redireccionar a home para rutas no encontradas

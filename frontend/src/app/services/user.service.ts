@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, of, throwError } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -88,5 +88,28 @@ export class UserService {
    */
   getFavorites(): Observable<any[]> {
     return this.getFavoriteGames();
+  }
+
+  /**
+   * Updates the user profile information
+   * @param userData User data to update
+   * @returns Observable with the updated user data
+   */
+  updateUserProfile(userData: { nick?: string; precio_max?: number }): Observable<any> {
+    // The correct endpoint is /api/users/me which already exists in the backend
+    return this.http.patch('/api/users/me', userData).pipe(
+      tap(response => {
+        // Update local user data
+        const currentUser = this.authService.getUserData();
+        if (currentUser) {
+          const updatedUser = { ...currentUser, ...userData };
+          localStorage.setItem('user_data', JSON.stringify(updatedUser));
+        }
+      }),
+      catchError(error => {
+        console.error('Error updating user profile:', error);
+        return throwError(() => new Error('Error al actualizar el perfil'));
+      })
+    );
   }
 }
