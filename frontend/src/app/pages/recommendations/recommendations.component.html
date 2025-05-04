@@ -1,1 +1,61 @@
-<p>recommendations works!</p>
+<div class="recommendations-container">
+  <header class="recommendations-header glass-container">
+    <h1 class="recommendations-title">Recomendaciones personalizadas</h1>
+    <p class="recommendations-subtitle">Juegos seleccionados especialmente para ti basados en tus preferencias</p>
+  </header>
+
+  <!-- Indicador de carga -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loader"></div>
+    <p>Cargando recomendaciones...</p>
+  </div>
+
+  <!-- Mensaje de error -->
+  <div class="error-message glass-container" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+    <button class="btn-retry" (click)="loadPersonalizedRecommendations()">Reintentar</button>
+  </div>
+
+  <!-- Mensaje de "sin favoritos" -->
+  <div class="no-recommendations glass-container" *ngIf="!isLoading && noFavoritesMessage">
+    <div class="empty-state">
+      <div class="empty-icon">⭐</div>
+      <h2>Añade juegos a favoritos</h2>
+      <p>Necesitamos que marques juegos como favoritos para poder generar recomendaciones personalizadas</p>
+      <button class="btn-explore" routerLink="/home">Explorar juegos</button>
+    </div>
+  </div>
+
+  <!-- Mensaje de "sin recomendaciones" -->
+  <div class="no-recommendations glass-container" *ngIf="!isLoading && !errorMessage && !noFavoritesMessage && recommendedGames.length === 0">
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h2>No encontramos recomendaciones</h2>
+      <p>Explora más juegos para obtener recomendaciones personalizadas</p>
+      <button class="btn-explore" routerLink="/home">Explorar juegos</button>
+    </div>
+  </div>
+
+  <!-- Lista de juegos recomendados -->
+  <div class="recommendations-grid" *ngIf="!isLoading && recommendedGames.length > 0">
+    <div class="recommendation-card glass-container" *ngFor="let game of recommendedGames" (click)="navigateToGameDetail(game.id)">
+      <div class="recommendation-image-container">
+        <img [src]="game.imagen_principal" [alt]="game.nombre" class="recommendation-image">
+        <div class="recommendation-score">{{ (game.puntuacion * 10).toFixed(1) }}</div>
+      </div>
+      <div class="recommendation-info">
+        <h3 class="recommendation-title">{{ game.nombre }}</h3>
+        <div class="recommendation-genres">
+          <span class="genre-tag" *ngFor="let genre of game.generos.slice(0, 2)">{{ genre }}</span>
+        </div>
+        <div class="recommendation-price">{{ game.precio | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="recommendation-match">
+          <span class="match-label">Coincidencia:</span>
+          <div class="match-bar">
+            <div class="match-fill" [style.width.%]="game.puntuacion * 100"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

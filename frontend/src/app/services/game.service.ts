@@ -70,6 +70,14 @@ export class GameService {
   }
 
   /**
+   * Obtiene recomendaciones personalizadas para el usuario actual
+   * @returns Observable con la lista de juegos recomendados personalizados
+   */
+  getPersonalized(): Observable<RecommendedGame[]> {
+    return this.http.get<RecommendedGame[]>('/recommendations/personalized');
+  }
+
+  /**
    * Obtiene los detalles de un juego específico por su ID
    * @param id ID del juego a consultar
    * @returns Observable con los detalles del juego

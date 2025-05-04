@@ -39,43 +39,8 @@ export class FavoritesComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = null;
 
-    // En una implementación real, aquí llamaríamos al servicio para obtener los favoritos
-    // Por ahora, simularemos datos para la vista
-    
-    setTimeout(() => {
-      // Datos de ejemplo - estos vendrían del servicio en una implementación real
-      this.favoriteGames = [
-        {
-          id: 1,
-          name: 'Hollow Knight',
-          imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/367520/header.jpg',
-          genres: ['Metroidvania', 'Souls-like', 'Plataformas']
-        },
-        {
-          id: 2,
-          name: 'Stardew Valley',
-          imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/413150/header.jpg',
-          genres: ['Simulación', 'RPG', 'Pixel Art']
-        },
-        {
-          id: 3,
-          name: 'Hades',
-          imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/1145360/header.jpg',
-          genres: ['Roguelike', 'Acción', 'Dungeon Crawler']
-        },
-        {
-          id: 4,
-          name: 'Celeste',
-          imageUrl: 'https://cdn.akamai.steamstatic.com/steam/apps/504230/header.jpg',
-          genres: ['Plataformas', 'Pixel Art', 'Difícil']
-        }
-      ];
-      this.isLoading = false;
-    }, 1000);
-
-    // Implementación real (comentada)
-    /*
-    this.userService.getFavoriteGames()
+    // Llamamos al nuevo método getFavorites para obtener los favoritos con datos completos de RAWG
+    this.userService.getFavorites()
       .pipe(
         catchError(error => {
           console.error('Error al cargar juegos favoritos:', error);
@@ -88,7 +53,6 @@ export class FavoritesComponent implements OnInit {
         this.favoriteGames = games;
         this.isLoading = false;
       });
-    */
   }
 
   /**
@@ -103,16 +67,8 @@ export class FavoritesComponent implements OnInit {
     // Marcar el juego como "eliminando"
     this.isRemoving[gameId] = true;
 
-    // Simulamos la eliminación con un timeout
-    setTimeout(() => {
-      // Lógica para eliminar de favoritos (simulada)
-      this.favoriteGames = this.favoriteGames.filter(game => game.id !== gameId);
-      delete this.isRemoving[gameId];
-    }, 800);
-
-    // Implementación real (comentada)
-    /*
-    this.userService.removeGameFromFavorites(gameId)
+    // Usar el nuevo método del servicio para eliminar de favoritos
+    this.userService.removeFavorite(gameId)
       .pipe(
         catchError(error => {
           console.error('Error al eliminar de favoritos:', error);
@@ -121,14 +77,11 @@ export class FavoritesComponent implements OnInit {
           return of(null);
         })
       )
-      .subscribe(response => {
-        if (response) {
-          // Eliminar el juego de la lista local
-          this.favoriteGames = this.favoriteGames.filter(game => game.id !== gameId);
-        }
+      .subscribe(() => {
+        // Eliminar el juego de la lista local para actualizar la UI sin recargar
+        this.favoriteGames = this.favoriteGames.filter(game => game.id !== gameId);
         delete this.isRemoving[gameId];
       });
-    */
   }
 
   /**

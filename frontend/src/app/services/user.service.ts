@@ -45,4 +45,21 @@ export class UserService {
   getFavoriteGames(): Observable<any[]> {
     return this.http.get<any[]>('/api/favorite-games/current-user');
   }
+
+  /**
+   * Obtiene los juegos favoritos del usuario actual con datos completos de RAWG
+   * @returns Observable con la lista de juegos favoritos procesados
+   */
+  getFavorites(): Observable<any[]> {
+    return this.http.get<any[]>('/users/favorites');
+  }
+
+  /**
+   * Elimina un juego de los favoritos del usuario mediante la nueva API
+   * @param gameId ID del juego a eliminar de favoritos
+   * @returns Observable con la respuesta del servidor
+   */
+  removeFavorite(gameId: number): Observable<any> {
+    return this.http.delete(`/users/favorites/${gameId}`);
+  }
 }
