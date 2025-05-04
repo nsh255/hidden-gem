@@ -1,0 +1,42 @@
+<div class="search-container">
+  <div class="search-input-container">
+    <input 
+      type="text" 
+      class="search-input"
+      placeholder="Buscar juegos..." 
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="search($event)"
+      (focus)="showResults = searchTerm.length > 0"
+      autocomplete="off"
+    >
+    <button *ngIf="searchTerm" class="clear-button" (click)="clearSearch()">✕</button>
+    <div class="search-icon" *ngIf="!isSearching">🔍</div>
+    <div class="search-loader" *ngIf="isSearching"></div>
+  </div>
+
+  <div class="search-results glass-container" *ngIf="showResults">
+    <div class="loading-container" *ngIf="isSearching">
+      <div class="loader"></div>
+      <p>Buscando juegos...</p>
+    </div>
+
+    <div class="no-results" *ngIf="!isSearching && searchResults.length === 0 && searchTerm.trim().length > 0">
+      <p>No se encontraron resultados para "{{searchTerm}}"</p>
+    </div>
+
+    <div class="results-list" *ngIf="!isSearching && searchResults.length > 0">
+      <div class="result-item" *ngFor="let game of searchResults" (click)="navigateToGame(game.id)">
+        <div class="result-image">
+          <img [src]="game.background_image" [alt]="game.name" onerror="this.src='assets/images/placeholder.jpg'">
+        </div>
+        <div class="result-info">
+          <h4 class="result-title">{{game.name}}</h4>
+          <div class="result-genres">
+            <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 2)">{{genre.name}}</span>
+          </div>
+          <div class="result-rating">{{game.rating.toFixed(1)}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -104,16 +104,34 @@
   }
 }
 
+// Updated rating styles
+.game-card-rating {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(to bottom right, #ff9900, #ff5500);
+  color: white;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-weight: bold;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+// Apply the same style to game-rating for consistency
 .game-rating {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(0, 0, 0, 0.6);
-  color: var(--accent-gold);
-  padding: 0.25rem 0.5rem;
+  background: linear-gradient(to bottom right, #ff9900, #ff5500);
+  color: white;
+  padding: 0.3rem 0.6rem;
   border-radius: var(--radius-sm);
   font-weight: bold;
   font-size: 0.9rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 // Información del juego
@@ -218,6 +236,101 @@
 .no-results-container {
   border: 1px solid var(--card-border);
   color: var(--silver-600);
+}
+
+// Añadimos estilos para el buscador
+.search-box {
+  position: relative;
+  z-index: 10; // Ensure it stays above other elements
+  max-width: 600px;
+  margin: 2rem auto 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 1rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--silver-900);
+  font-size: 1rem;
+  padding: 0.5rem;
+  outline: none;
+}
+
+.search-box button {
+  background: var(--accent-blue);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: rgba(0, 102, 204, 0.9); // Replace with a darker shade of blue
+  }
+}
+
+// Estilos para los resultados de búsqueda
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.search-result-image img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.search-result-info {
+  flex: 1;
+}
+
+.search-result-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0;
+  color: var(--silver-900);
+}
+
+.search-result-genres {
+  font-size: 0.9rem;
+  color: var(--silver-600);
+  margin: 0.25rem 0;
+}
+
+.search-result-rating {
+  font-size: 0.9rem;
+  color: var(--accent-gold);
 }
 
 // Responsive

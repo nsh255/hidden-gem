@@ -43,7 +43,13 @@ def get_games(
         
         # Ensure RAWG API response is valid
         if not result or "results" not in result:
-            raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
+            # Provide a fallback response structure to prevent frontend errors
+            return {
+                "count": 0,
+                "next": None,
+                "previous": None,
+                "results": []
+            }
         
         # Añadimos precios simulados a los juegos
         for game in result.get("results", []):
@@ -58,7 +64,15 @@ def get_games(
         return result
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al obtener juegos: {str(e)}")
+        # Log the error for debugging
+        print(f"Error getting games: {str(e)}")
+        # Return a valid empty response instead of raising an exception
+        return {
+            "count": 0,
+            "next": None,
+            "previous": None,
+            "results": []
+        }
 
 @router.get("/filter", response_model=Dict[str, Any])
 def filter_games(
@@ -130,11 +144,13 @@ def filter_games(
 @router.get("/{game_id}/similar", response_model=List[Dict[str, Any]])
 def get_similar_games(
     game_id: int,
-    limit: int = Query(4, description="Número máximo de juegos similares"),
+    page: int = Query(1, description="Página de resultados"),
+    limit: int = Query(4, description="Número máximo de juegos similares por página"),
     db: Session = Depends(get_db)
 ):
     """
     Obtiene juegos similares a un juego específico.
+    Soporta paginación para ver más juegos similares.
     """
     try:
         # Obtener detalles del juego
@@ -148,14 +164,16 @@ def get_similar_games(
         if not genres:
             return []
         
-        # Obtener juegos similares basados en géneros
-        similar_games = rawg_api.get_games_by_genres(genres, 1, limit)
+        # Obtener juegos similares basados en géneros con paginación
+        # Multiplicamos por page para simular paginación en la API
+        total_to_fetch = limit * page + 1  # Obtenemos uno extra para asegurar contenido suficiente
+        similar_games = rawg_api.get_games_by_genres(genres, 1, total_to_fetch)
         
         if not similar_games or "results" not in similar_games:
             return []
         
         # Filtrar el juego actual de los resultados y añadir precios simulados
-        results = []
+        all_results = []
         for game in similar_games.get("results", []):
             if game["id"] != game_id:
                 # Añadir precio simulado
@@ -166,13 +184,19 @@ def get_similar_games(
                 else:
                     game["price"] = 14.99
                 
-                results.append(game)
-                
-                # Limitar a la cantidad solicitada
-                if len(results) >= limit:
-                    break
+                all_results.append(game)
         
-        return results
+        # Aplicar paginación
+        start_idx = (page - 1) * limit
+        end_idx = start_idx + limit
+        paged_results = all_results[start_idx:end_idx]
+        
+        # Añadir flag para indicar si hay más resultados
+        has_more = end_idx < len(all_results)
+        for game in paged_results:
+            game["has_more"] = has_more
+        
+        return paged_results
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener juegos similares: {str(e)}")

@@ -6,6 +6,7 @@ import { RecommendationService, RecommendedGame } from '../../services/recommend
 import { AuthService } from '../../services/auth.service'; // Import AuthService
 import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { GameSearchComponent } from '../../components/game-search/game-search.component';
 
 // Interfaz para los datos crudos de juegos que vienen de la API
 interface RawGameData {
@@ -22,7 +23,7 @@ interface RawGameData {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, GameSearchComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -47,6 +48,10 @@ export class HomeComponent implements OnInit {
   defaultGenres: string[] = ['Action', 'RPG'];
 
   isAuthenticated: boolean = false; // Track authentication status
+
+  searchResults: GameSummary[] = [];
+  isSearching: boolean = false;
+  searchError: string | null = null;
 
   constructor(
     private gameService: GameService,
@@ -112,7 +117,7 @@ export class HomeComponent implements OnInit {
         })
       )
       .subscribe(response => {
-        if (response && response.results) {
+        if (response && response.results && response.results.length > 0) {
           // Mapear los resultados al formato esperado por la UI
           this.recommendedGames = response.results.map((game: RawGameData) => ({
             id: game.id || 0,
@@ -134,8 +139,8 @@ export class HomeComponent implements OnInit {
     this.isLoadingPopular = true;
     this.errorPopular = null;
     
-    // Obtener juegos en tendencia como populares
-    this.gameService.getTrendingGames(1, 4)
+    // Obtener juegos en tendencia como populares - increased to 20 games
+    this.gameService.getTrendingGames(1, 9)
       .pipe(
         catchError(error => {
           this.errorPopular = 'Error al cargar juegos populares.';
@@ -174,12 +179,17 @@ export class HomeComponent implements OnInit {
     if (this.isLoadingRandomGames) return;
 
     this.isLoadingRandomGames = true;
-    this.gameService.getRandomGamesWithPage(this.randomGamesPage, 10) // Added the second argument (pageSize)
+    
+    // Add a random parameter to ensure we get different games each time
+    const randomSeed = Math.floor(Math.random() * 10000);
+    this.gameService.getRandomGamesWithPage(this.randomGamesPage, 10)
       .subscribe({
         next: (response) => {
-          if (response && response.results) {
+          if (response && response.results && response.results.length > 0) {
             this.randomGames = [...this.randomGames, ...response.results];
             this.randomGamesPage++;
+          } else {
+            console.log('No more random games available');
           }
           this.isLoadingRandomGames = false;
         },
@@ -195,5 +205,32 @@ export class HomeComponent implements OnInit {
     if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
       this.loadRandomGames(); // Load more random games when near the bottom
     }
+  }
+
+  /**
+   * Maneja la búsqueda de juegos
+   * @param query Texto de búsqueda
+   */
+  searchGames(query: string): void {
+    if (!query.trim()) {
+      this.searchResults = [];
+      return;
+    }
+
+    this.isSearching = true;
+    this.searchError = null;
+
+    this.gameService.searchGames(query)
+      .subscribe({
+        next: (results) => {
+          this.searchResults = results;
+          this.isSearching = false;
+        },
+        error: (error) => {
+          console.error('Error al buscar juegos:', error);
+          this.searchError = 'No se pudieron cargar los resultados de búsqueda.';
+          this.isSearching = false;
+        }
+      });
   }
 }

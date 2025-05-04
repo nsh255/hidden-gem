@@ -2,6 +2,39 @@
   <header class="header glass-container">
     <h1 class="gem-title gem-text">Bienvenido a HiddenGem</h1>
     <p class="gem-subtitle">Descubre joyas ocultas en el mundo de los videojuegos indies</p>
+    
+    <!-- Agregamos el buscador aquí -->
+    <div class="search-box">
+      <input type="text" placeholder="Buscar juegos..." #searchInput (input)="searchGames(searchInput.value)" />
+      <button (click)="searchGames(searchInput.value)">Buscar</button>
+    </div>
+
+    <!-- Mostrar resultados de búsqueda -->
+    <div class="search-results" *ngIf="searchResults.length > 0">
+      <div class="search-result-item" *ngFor="let game of searchResults" (click)="navigateToGameDetail(game.id)">
+        <div class="search-result-image">
+          <img [src]="game.background_image" [alt]="game.name" />
+        </div>
+        <div class="search-result-info">
+          <h3 class="search-result-title">{{ game.name }}</h3>
+          <p class="search-result-genres">
+            <span *ngFor="let genre of game.genres.slice(0, 3)">{{ genre.name }}</span>
+          </p>
+          <p class="search-result-rating">Rating: {{ game.rating.toFixed(1) }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje de error de búsqueda -->
+    <div class="error-message glass-container" *ngIf="searchError">
+      <p>{{ searchError }}</p>
+    </div>
+
+    <!-- Indicador de carga de búsqueda -->
+    <div class="loading-container" *ngIf="isSearching">
+      <div class="loader"></div>
+      <p>Buscando juegos...</p>
+    </div>
   </header>
 
   <section class="content-section" *ngIf="isAuthenticated">
@@ -74,7 +107,7 @@
           <div class="game-genres">
             <span class="genre-tag" *ngFor="let genre of game.generos.slice(0, 3)">{{ genre }}</span>
           </div>
-          <div class="game-price game-card-price">{{ formatPrice(game.precio) }}</div>
+          <div class="game-price game-card-price">{{ formatPrice(game.precio, false) }}</div>
           <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
         </div>
       </div>
@@ -111,9 +144,7 @@
           <div class="game-genres">
             <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{genre.name}}</span>
           </div>
-          <div class="game-price game-card-price" *ngIf="formatPrice(game.price, false)">
-            {{ formatPrice(game.price, false) }}
-          </div>
+          <!-- Remove price display for popular games -->
           <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
         </div>
       </div>
@@ -143,9 +174,8 @@
           <div class="game-genres">
             <span class="genre-tag" *ngFor="let genre of game.genres.slice(0, 3)">{{ genre.name }}</span>
           </div>
-          <div class="game-price game-card-price" *ngIf="formatPrice(game.price, true)">
-            {{ formatPrice(game.price, true) }}
-          </div>
+          <!-- Remove price display for random games -->
+          <button class="btn btn-primary" (click)="navigateToGameDetail(game.id)">Ver más</button>
         </div>
       </div>
     </div>

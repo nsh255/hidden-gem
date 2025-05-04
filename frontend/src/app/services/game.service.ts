@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 // Interfaz para la respuesta paginada de juegos
 export interface PaginatedGamesResponse {
@@ -86,7 +87,18 @@ export class GameService {
    */
   searchGames(query: string): Observable<GameSummary[]> {
     const params = new HttpParams().set('query', query);
-    return this.http.get<GameSummary[]>('/api/rawg/search', { params });
+    return this.http.get<any>('/api/rawg/search', { params }).pipe(
+      map(response => {
+        if (response && response.results) {
+          return response.results;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error searching games:', error);
+        return of([]);
+      })
+    );
   }
 
   /**
@@ -115,13 +127,9 @@ export class GameService {
 
   /**
    * Obtiene juegos similares a un juego específico
-   * @param gameId ID del juego para el que se buscan similares
-   * @param limit Número máximo de juegos a devolver
-   * @returns Observable con la lista de juegos similares
    */
-  getSimilarGames(gameId: number, limit: number = 4): Observable<GameSummary[]> {
-    const params = new HttpParams().set('limit', limit.toString());
-    return this.http.get<GameSummary[]>(`/api/games/${gameId}/similar`, { params });
+  getSimilarGames(gameId: number, page: number = 1): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${gameId}/similar?page=${page}&limit=4`);
   }
 
   /**
@@ -201,9 +209,16 @@ export class GameService {
    * @returns Observable con la lista de juegos en tendencia
    */
   getTrendingGames(page: number, pageSize: number): Observable<{ results: GameSummary[] }> {
-    return this.http.get<{ results: GameSummary[] }>(`${this.apiUrl}`, {
+    console.log('Fetching trending games, page:', page, 'size:', pageSize);
+    return this.http.get<{ results: GameSummary[] }>(`/api/rawg/trending`, {
       params: { page: page.toString(), page_size: pageSize.toString() },
-    });
+    }).pipe(
+      catchError(error => {
+        console.error('Error fetching trending games:', error);
+        // Return a valid empty response to prevent UI errors
+        return of({ results: [] });
+      })
+    );
   }
 
   /**
@@ -212,8 +227,29 @@ export class GameService {
    * @returns Observable con la lista de juegos aleatorios
    */
   getRandomGames(count: number = 10): Observable<any> {
-    const params = new HttpParams().set('count', count.toString());
-    return this.http.get<any>('/api/rawg/random', { params });
+    // Add a truly unique identifier to defeat caching
+    const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Log the request for debugging
+    console.log(`Fetching random games with unique ID: ${uniqueId}`);
+    
+    const params = new HttpParams()
+      .set('count', count.toString())
+      .set('_t', uniqueId);
+    
+    return this.http.get<any>('/api/rawg/random', { 
+      params, 
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      } 
+    }).pipe(
+      catchError(error => {
+        console.error('Error fetching random games:', error);
+        return of({ count: 0, results: [] });
+      })
+    );
   }
 
   /**
@@ -223,8 +259,25 @@ export class GameService {
    * @returns Observable con la lista de juegos aleatorios
    */
   getRandomGamesWithPage(page: number, pageSize: number): Observable<{ results: GameSummary[] }> {
-    return this.http.get<{ results: GameSummary[] }>(`${this.apiUrl}/filter`, {
-      params: { page: page.toString(), page_size: pageSize.toString(), sort_by: 'random' },
-    });
+    // Create a unique identifier to prevent caching
+    const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    return this.http.get<{ results: GameSummary[] }>('/api/rawg/random', {
+      params: { 
+        count: pageSize.toString(),
+        page: page.toString(),
+        _t: uniqueId
+      },
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      } 
+    }).pipe(
+      catchError(error => {
+        console.error('Error fetching random games with pagination:', error);
+        return of({ results: [] });
+      })
+    );
   }
 }

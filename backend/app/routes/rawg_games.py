@@ -116,15 +116,128 @@ def get_trending_games(
 
 @router.get("/random", response_model=dict)
 def get_random_games(
-    count: int = Query(10, description="Número de juegos aleatorios a recuperar", ge=1, le=50)
+    count: int = Query(10, description="Número de juegos aleatorios a recuperar", ge=1, le=50),
+    _t: str = Query(None, description="Timestamp parameter to prevent caching")
 ):
+    """
+    Get truly random games by fetching from different pages and using different ordering methods
+    """
     try:
-        result = rawg_api.get_random_games(count)
-        if not result or "results" not in result:
-            raise HTTPException(status_code=503, detail="No se encontraron juegos aleatorios.")
-        return result
+        import random
+        import time
+        
+        # Use current timestamp as part of seed to ensure different results each time
+        current_seed = int(time.time() * 1000)
+        random.seed(current_seed)
+        print(f"Using random seed: {current_seed}")
+        
+        # Define various orderings to fetch different game sets
+        orderings = [
+            '-rating', 'rating', 
+            '-released', 'released', 
+            '-added', 'added',
+            '-name', 'name',
+            None  # Default ordering
+        ]
+        
+        # Select a random ordering
+        selected_ordering = random.choice(orderings)
+        print(f"Selected ordering: {selected_ordering}")
+        
+        # Select random page numbers
+        page_numbers = random.sample(range(1, 20), min(5, count))
+        print(f"Selected pages: {page_numbers}")
+        
+        # Collect games from different pages with the selected ordering
+        all_games = []
+        for page in page_numbers:
+            try:
+                # Use RAWG API to fetch games with specific parameters
+                params = {
+                    'page': page,
+                    'page_size': 20,
+                }
+                if selected_ordering:
+                    params['ordering'] = selected_ordering
+                    
+                # Get games from RAWG API
+                result = rawg_api.get_games_with_filters(params)
+                
+                if result and "results" in result and result["results"]:
+                    all_games.extend(result["results"])
+                    print(f"Added {len(result['results'])} games from page {page}")
+            except Exception as e:
+                print(f"Error fetching page {page}: {str(e)}")
+                continue
+        
+        # If we didn't get enough games, try a fallback approach
+        if len(all_games) < count:
+            fallback_ordering = random.choice([o for o in orderings if o != selected_ordering and o is not None])
+            try:
+                fallback_result = rawg_api.get_games_with_filters({
+                    'page': 1,
+                    'page_size': 40,
+                    'ordering': fallback_ordering
+                })
+                if fallback_result and "results" in fallback_result:
+                    all_games.extend(fallback_result["results"])
+                    print(f"Added {len(fallback_result['results'])} games from fallback")
+            except Exception as e:
+                print(f"Error with fallback: {str(e)}")
+        
+        # Make sure we have enough games
+        if not all_games:
+            print("No games found, using trending as last resort")
+            try:
+                trending = rawg_api.get_trending_games(1, count)
+                if trending and "results" in trending:
+                    all_games = trending["results"]
+            except:
+                return {"count": 0, "results": []}
+        
+        # Shuffle games thoroughly
+        for _ in range(3):  # Shuffle multiple times
+            random.shuffle(all_games)
+            
+        # Ensure each game gets a unique image URL by adding timestamp
+        # and make sure we have different prices
+        unique_games = []
+        used_ids = set()
+        
+        for game in all_games:
+            # Skip duplicates
+            if game["id"] in used_ids:
+                continue
+                
+            used_ids.add(game["id"])
+            
+            # Add random price
+            base_price = 14.99
+            rating_factor = game.get("rating", 0) / 5.0 if "rating" in game else 0.5
+            random_factor = random.uniform(0.7, 1.3)  # More variation
+            game["price"] = round((base_price + (10 * rating_factor)) * random_factor, 2)
+            
+            # Make image URL unique to prevent caching
+            if "background_image" in game and game["background_image"]:
+                unique_param = f"_t={current_seed}_{random.randint(1000, 9999)}"
+                separator = "?" if "?" not in game["background_image"] else "&"
+                game["background_image"] = f"{game['background_image']}{separator}{unique_param}"
+            
+            unique_games.append(game)
+            
+            # Stop once we have enough games
+            if len(unique_games) >= count:
+                break
+        
+        # Take only what we need
+        final_games = unique_games[:count]
+        print(f"Returning {len(final_games)} random games")
+        
+        return {"count": len(final_games), "results": final_games}
+        
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Error al conectar con RAWG API: {str(e)}")
+        print(f"Random games error: {str(e)}")
+        return {"count": 0, "results": []}
 
 @router.get("/game/{game_id}/screenshots", response_model=List[dict])
 def get_game_screenshots(game_id: int):

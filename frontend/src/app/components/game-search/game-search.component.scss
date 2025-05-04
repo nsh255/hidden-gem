@@ -1,0 +1,212 @@
+:host {
+  --card-blur: 10px;
+  --card-border: rgba(255, 255, 255, 0.2);
+  --card-shadow: rgba(0, 0, 0, 0.1);
+  --accent-purple-rgb: 179, 136, 255;
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  z-index: 100;
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(var(--card-blur));
+  -webkit-backdrop-filter: blur(var(--card-blur));
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 15px 0 var(--card-shadow);
+  border-radius: var(--radius-md);
+  color: var(--silver-100);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: rgba(var(--accent-purple-rgb), 0.5);
+    box-shadow: 0 4px 20px rgba(var(--accent-purple-rgb), 0.2);
+  }
+  
+  &::placeholder {
+    color: var(--silver-500);
+  }
+}
+
+.search-icon {
+  position: absolute;
+  right: 10px;
+  color: var(--silver-500);
+  pointer-events: none;
+}
+
+.clear-button {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--silver-500);
+  cursor: pointer;
+  padding: 0;
+  font-size: 1rem;
+  
+  &:hover {
+    color: var(--silver-300);
+  }
+}
+
+.search-loader {
+  position: absolute;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(var(--accent-purple-rgb), 0.3);
+  border-radius: 50%;
+  border-top-color: var(--accent-purple);
+  animation: spin 1s ease infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  background: rgba(40, 40, 50, 0.95);
+  backdrop-filter: blur(var(--card-blur));
+  -webkit-backdrop-filter: blur(var(--card-blur));
+  border: 1px solid rgba(60, 60, 80, 0.5);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--silver-300);
+  
+  .loader {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(var(--accent-purple-rgb), 0.3);
+    border-radius: 50%;
+    border-top-color: var(--accent-purple);
+    animation: spin 1s ease infinite;
+    margin-bottom: 1rem;
+  }
+}
+
+.no-results {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--silver-400);
+}
+
+.results-list {
+  padding: 0.5rem;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.result-image {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-right: 1rem;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.result-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.result-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--silver-200);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-genres {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.genre-tag {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  background: rgba(var(--accent-purple-rgb), 0.2);
+  color: var(--accent-purple);
+  border-radius: var(--radius-pill);
+  font-weight: 500;
+}
+
+.result-rating {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: linear-gradient(to bottom right, #ff9900, #ff5500);
+  color: white;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  :host {
+    max-width: 100%;
+  }
+  
+  .search-results {
+    max-height: 300px;
+  }
+}

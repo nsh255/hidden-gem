@@ -30,8 +30,8 @@
           </div>
         </div>
         <div class="game-actions">
-          <!-- Botón para añadir a favoritos -->
-          <button class="btn btn-primary" [class.favorited]="isFavorite" (click)="toggleFavorite()" [disabled]="isAddingToFavorites">
+          <!-- Botón para añadir a favoritos - solo visible si está autenticado -->
+          <button *ngIf="isAuthenticated" class="btn btn-primary" [class.favorited]="isFavorite" (click)="toggleFavorite()" [disabled]="isAddingToFavorites">
             <span class="heart-icon">{{ isFavorite ? '♥' : '♡' }}</span>
             <span *ngIf="!isAddingToFavorites">{{ isFavorite ? 'Añadido a favoritos' : 'Añadir a favoritos' }}</span>
             <span *ngIf="isAddingToFavorites">Añadiendo...</span>
@@ -51,10 +51,7 @@
         <span class="genre-tag" *ngFor="let genre of game.genres">{{ genre }}</span>
       </div>
 
-      <div class="game-price-container">
-        <span class="game-price">{{ game.price | currency:'USD':'symbol':'1.2-2' }}</span>
-        <a [href]="game.storeUrl" target="_blank" class="btn btn-primary" *ngIf="game.storeUrl">Ver en tienda</a>
-      </div>
+      <!-- Eliminado el contenedor de precio y botón de tienda -->
 
       <div class="game-description">
         <h2>Descripción</h2>
@@ -74,7 +71,18 @@
 
     <!-- Sección de juegos similares -->
     <div class="glass-container similar-games" *ngIf="similarGames && similarGames.length > 0">
-      <h2>Juegos similares que te podrían gustar</h2>
+      <div class="similar-games-header">
+        <h2>Juegos similares que te podrían gustar</h2>
+        <div class="similar-games-navigation">
+          <button class="nav-button prev" [disabled]="currentSimilarPage === 1" (click)="navigateSimilarGames('prev')">
+            <span>←</span>
+          </button>
+          <span class="page-indicator">Página {{currentSimilarPage}}</span>
+          <button class="nav-button next" [disabled]="!hasMoreSimilarGames" (click)="navigateSimilarGames('next')">
+            <span>→</span>
+          </button>
+        </div>
+      </div>
       <div class="similar-games-grid">
         <div class="glass-card similar-game-card" *ngFor="let similarGame of similarGames" (click)="navigateToGame(similarGame.id)">
           <div class="similar-game-image glass-image-container">
@@ -87,6 +95,10 @@
             </div>
           </div>
         </div>
+      </div>
+      <div class="similar-games-loading" *ngIf="isLoadingSimilarGames">
+        <div class="loader"></div>
+        <p>Cargando más juegos similares...</p>
       </div>
     </div>
   </div>

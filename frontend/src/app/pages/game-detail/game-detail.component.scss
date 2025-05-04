@@ -291,6 +291,70 @@
 }
 
 // Juegos similares
+.similar-games-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.similar-games h2 {
+  font-size: 1.5rem;
+  color: var(--silver-800);
+  margin-bottom: 0;
+}
+
+.similar-games-navigation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(var(--accent-purple-rgb), 0.15);
+  color: var(--accent-purple);
+  border: 1px solid rgba(var(--accent-purple-rgb), 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.2rem;
+  
+  &:hover:not(:disabled) {
+    background: rgba(var(--accent-purple-rgb), 0.25);
+    transform: translateY(-2px);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.page-indicator {
+  font-size: 0.9rem;
+  color: var(--silver-600);
+}
+
+.similar-games-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--silver-600);
+  
+  .loader {
+    width: 30px;
+    height: 30px;
+    margin-bottom: 0.5rem;
+  }
+}
+
 .similar-games h2 {
   font-size: 1.5rem;
   color: var(--silver-800);
@@ -354,6 +418,44 @@
         padding: 0.2rem 0.6rem;
       }
     }
+  }
+}
+
+// Update the review cards to be dark with white text
+.review-card {
+  background: rgba(30, 30, 40, 0.95); // Dark background
+  color: #ffffff; // White text
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(60, 60, 80, 0.5);
+  
+  .review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    
+    .review-user {
+      font-weight: 600;
+      color: #fff; // White text
+    }
+    
+    .review-rating {
+      color: var(--accent-gold);
+      font-weight: 700;
+    }
+  }
+  
+  .review-date {
+    font-size: 0.85rem;
+    color: #aaaaaa; // Light gray for secondary text
+    margin-bottom: 0.75rem;
+  }
+  
+  .review-content {
+    line-height: 1.6;
+    color: #e0e0e0; // Light gray for main text
   }
 }
 
