@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';router';
+import { RouterModule, Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -26,7 +26,7 @@ export class FavoritesComponent implements OnInit {
   errorMessage: string | null = null;
   isRemoving: { [key: number]: boolean } = {}; // Para rastrear qué juego se está eliminando
 
-  constructor(private userService: UserService, private router: Router) { }vate router: Router) { }
+  constructor(private userService: UserService, private router: Router) { }
 
   ngOnInit(): void {
     this.loadFavoriteGames();
@@ -89,7 +89,6 @@ export class FavoritesComponent implements OnInit {
    * @param gameId ID del juego a ver
    */
   navigateToGameDetail(gameId: number): void {
-    // Esta funcionalidad se implementaría con el Router
-    console.log(`Navegar a detalle del juego ${gameId}`);
+    this.router.navigate(['/game', gameId]);
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -21,6 +22,13 @@ export class UserService {
   }
   
   /**
+   * Alias para addGameToFavorites para mantener consistencia de nomenclatura
+   */
+  addFavorite(gameId: number): Observable<any> {
+    return this.addGameToFavorites(gameId);
+  }
+  
+  /**
    * Remueve un juego de los favoritos del usuario
    * @param gameId ID del juego a remover de favoritos
    * @returns Observable con la respuesta del servidor
@@ -30,6 +38,13 @@ export class UserService {
     return this.http.delete('/api/favorite-games/remove-favorite', {
       body: { usuario_id: userId, juego_id: gameId }
     });
+  }
+  
+  /**
+   * Alias para removeGameFromFavorites para mantener consistencia de nomenclatura
+   */
+  removeFavorite(gameId: number): Observable<any> {
+    return this.removeGameFromFavorites(gameId);
   }
   
   /**
@@ -53,5 +68,12 @@ export class UserService {
   getFavoriteGames(): Observable<any[]> {
     const userId = this.authService.getCurrentUserId();
     return this.http.get<any[]>(`/api/favorite-games/user/${userId}`);
+  }
+  
+  /**
+   * Alias para getFavoriteGames para mantener consistencia de nomenclatura
+   */
+  getFavorites(): Observable<any[]> {
+    return this.getFavoriteGames();
   }
 }
