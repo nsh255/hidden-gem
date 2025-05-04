@@ -1,0 +1,23 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Instalar dependencias
+COPY package*.json ./
+RUN npm install
+
+# El resto de los archivos se montará como volumen
+# Asegurarse de que tenemos los directorios necesarios
+RUN mkdir -p src/assets/images
+
+# Imagen placeholder por defecto
+RUN echo "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" > src/assets/images/placeholder.jpg
+
+# Crear proxy.conf.json para desarrollo
+RUN echo '{ "/api": { "target": "http://backend:8000", "secure": false, "changeOrigin": true } }' > proxy.conf.json
+
+# Exponer el puerto
+EXPOSE 4200
+
+# Comando para iniciar Angular en modo desarrollo
+CMD ["npm", "run", "start", "--", "--host", "0.0.0.0", "--disable-host-check", "--proxy-config", "proxy.conf.json"]

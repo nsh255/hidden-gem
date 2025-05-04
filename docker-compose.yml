@@ -1,45 +1,92 @@
-version: '3'
+version: '3.8'
 
 services:
   postgres:
     image: postgres:13
     container_name: hidden-gem-postgres
+    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: hiddengem
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-hidden_gem}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+    networks:
+      - hidden-gem-network
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: hidden-gem-backend
+    restart: always
     depends_on:
       - postgres
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/hiddengem
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-hidden_gem}
+      - SECRET_KEY=${SECRET_KEY:-insecure_key_for_dev}
+      - RAWG_API_KEY=${RAWG_API_KEY:-your_rawg_api_key}
     volumes:
       - ./backend:/app
-      - ./.env:/app/.env
-    command: >
-      sh -c "pip install -r requirements.txt && pip install pydantic-settings &&
-            uvicorn app.main:app --host 0.0.0.0 --reload"
+    networks:
+      - hidden-gem-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hidden-gem-frontend
     restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    depends_on:
+      - backend
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    networks:
+      - hidden-gem-network
+    # Para facilitar el desarrollo, mostrar la salida de la consola directamente
+    tty: true
+    stdin_open: true
+    # Este script se ejecutará antes de iniciar Angular
+    command: >
+      sh -c "
+        # Crear directorio de assets si no existe
+        mkdir -p /app/src/assets/images;
+        
+        # Crear imagen placeholder si no existe
+        if [ ! -f /app/src/assets/images/placeholder.jpg ]; then
+          echo 'Creando imagen placeholder...';
+          echo 'iVBORw0KGgoAAAANSUhEUgAAASwAAACoCAMAAABt9SM9AAAAA1BMVEX///+nxBvIAAAAR0lEQVR4nO3BAQEAAACCIP+vbkhAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO8GxYgAAb0jQ/cAAAAASUVORK5CYII=' | base64 -d > /app/src/assets/images/placeholder.jpg;
+        fi;
+        
+        # Crear proxy.conf.json si no existe
+        if [ ! -f /app/proxy.conf.json ]; then
+          echo 'Creando proxy.conf.json...';
+          echo '{
+            \"/api\": {
+              \"target\": \"http://backend:8000\",
+              \"secure\": false,
+              \"changeOrigin\": true,
+              \"logLevel\": \"debug\"
+            }
+          }' > /app/proxy.conf.json;
+        fi;
+        
+        # Iniciar el servidor de desarrollo de Angular
+        ng serve --host 0.0.0.0 --disable-host-check --poll=2000 --proxy-config proxy.conf.json
+      "
+
+networks:
+  hidden-gem-network:
+    driver: bridge
 
 volumes:
   postgres_data:
