@@ -11,6 +11,44 @@ router = APIRouter(
     tags=["rawg-games"],
 )
 
+# Lista común de palabras clave sexuales
+sexual_keywords = [
+    "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
+    "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", "ntr", 
+    "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene",
+    # Términos adicionales
+    "girlfriend", "boyfriend", "dating", "romance", "sexy", "hot",
+    "love", "kiss", "touching", "strip", "undress", "lingerie", "bra",
+    "underwear", "bikini", "swimsuit", "pleasure", "desire", "passion",
+    "flirt", "seduce", "lust", "fantasy", "waifu", "huniepop", "dream daddy",
+    "hatoful", "boob", "breast", "butt", "ass", "grope", "panty", "thong",
+    "dating sim", "visual novel", "relationship", "body", "naked", "shower",
+    "bath", "beach", "model", "pose", "tease", "tempt", "virgin", "virgin*",
+    "hookup", "affair", "50 shades", "topless", "onlyfans", "dress up"
+]
+
+# Nueva función para verificar si un juego tiene contenido sexual
+def has_sexual_content(game):
+    """Comprueba si un juego contiene palabras clave sexuales en su título o descripción"""
+    # Verificar explícitamente el título (prioridad alta)
+    if game.get("name"):
+        game_name = game.get("name", "").lower()
+        if any(keyword in game_name for keyword in sexual_keywords):
+            return True
+    
+    # Verificar la descripción completa
+    if game.get("description"):
+        game_desc = game.get("description", "").lower()
+        if any(keyword in game_desc for keyword in sexual_keywords):
+            return True
+    
+    # Verificar la combinación de título y descripción
+    combined_text = (game.get("name", "").lower() + " " + game.get("description", "").lower())
+    if any(keyword in combined_text for keyword in sexual_keywords):
+        return True
+    
+    return False
+
 @router.get("/search", response_model=dict)
 def search_rawg_games(
     query: str = Query(..., description="Texto para buscar juegos"),
@@ -24,25 +62,10 @@ def search_rawg_games(
     if not result:
         raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
     
-    # Filtrar juegos con contenido sexual en el título o descripción
-    sexual_keywords = [
-        "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
-        "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", "ntr", 
-        "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene",
-        # Términos adicionales
-        "girlfriend", "boyfriend", "dating", "romance", "sexy", "hot",
-        "love", "kiss", "touching", "strip", "undress", "lingerie", "bra",
-        "underwear", "bikini", "swimsuit", "pleasure", "desire", "passion",
-        "flirt", "seduce", "lust", "fantasy", "waifu", "huniepop", "dream daddy",
-        "hatoful", "boob", "breast", "butt", "ass", "grope", "panty", "thong",
-        "dating sim", "visual novel", "relationship", "body", "naked", "shower",
-        "bath", "beach", "model", "pose", "tease", "tempt", "virgin", "virgin*",
-        "hookup", "affair", "50 shades", "topless", "onlyfans", "dress up"
-    ]
+    # Filtrar juegos con contenido sexual usando la nueva función
     filtered_results = [
         game for game in result.get("results", [])
-        if not any(keyword in (game.get("name", "").lower() + game.get("description", "").lower())
-                   for keyword in sexual_keywords)
+        if not has_sexual_content(game)
     ]
     result["results"] = filtered_results
     return result
@@ -56,14 +79,8 @@ def get_rawg_game(game_id: int):
     if not result:
         raise HTTPException(status_code=404, detail="Juego no encontrado o error en la API")
     
-    # Verificar contenido sexual en el título o descripción
-    sexual_keywords = [
-        "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
-        "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", 
-        "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene"
-    ]
-    if any(keyword in (result.get("name", "").lower() + result.get("description", "").lower())
-           for keyword in sexual_keywords):
+    # Verificar contenido sexual usando la nueva función
+    if has_sexual_content(result):
         raise HTTPException(status_code=400, detail="El juego contiene contenido inapropiado")
     
     return result

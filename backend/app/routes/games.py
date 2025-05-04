@@ -19,6 +19,44 @@ SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
+# Lista común de palabras clave sexuales
+sexual_keywords = [
+    "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
+    "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", "ntr", 
+    "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene",
+    # Términos adicionales
+    "girlfriend", "boyfriend", "dating", "romance", "sexy", "hot",
+    "love", "kiss", "touching", "strip", "undress", "lingerie", "bra",
+    "underwear", "bikini", "swimsuit", "pleasure", "desire", "passion",
+    "flirt", "seduce", "lust", "fantasy", "waifu", "huniepop", "dream daddy",
+    "hatoful", "boob", "breast", "butt", "ass", "grope", "panty", "thong",
+    "dating sim", "visual novel", "relationship", "body", "naked", "shower",
+    "bath", "beach", "model", "pose", "tease", "tempt", "virgin", "virgin*",
+    "hookup", "affair", "50 shades", "topless", "onlyfans", "dress up"
+]
+
+# Nueva función para verificar si un juego tiene contenido sexual
+def has_sexual_content(game):
+    """Comprueba si un juego contiene palabras clave sexuales en su título o descripción"""
+    # Verificar explícitamente el título (prioridad alta)
+    if game.get("name"):
+        game_name = game.get("name", "").lower()
+        if any(keyword in game_name for keyword in sexual_keywords):
+            return True
+    
+    # Verificar la descripción completa
+    if game.get("description"):
+        game_desc = game.get("description", "").lower()
+        if any(keyword in game_desc for keyword in sexual_keywords):
+            return True
+    
+    # Verificar la combinación de título y descripción
+    combined_text = (game.get("name", "").lower() + " " + game.get("description", "").lower())
+    if any(keyword in combined_text for keyword in sexual_keywords):
+        return True
+    
+    return False
+
 @router.get("/", response_model=Dict[str, Any])
 def get_games(
     page: int = Query(1, description="Número de página"),
@@ -61,25 +99,10 @@ def get_games(
             else:
                 game["price"] = 14.99
         
-        # Filtrar juegos con contenido sexual
-        sexual_keywords = [
-            "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
-            "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", "ntr", 
-            "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene",
-            # Términos adicionales
-            "girlfriend", "boyfriend", "dating", "romance", "sexy", "hot",
-            "love", "kiss", "touching", "strip", "undress", "lingerie", "bra",
-            "underwear", "bikini", "swimsuit", "pleasure", "desire", "passion",
-            "flirt", "seduce", "lust", "fantasy", "waifu", "huniepop", "dream daddy",
-            "hatoful", "boob", "breast", "butt", "ass", "grope", "panty", "thong",
-            "dating sim", "visual novel", "relationship", "body", "naked", "shower",
-            "bath", "beach", "model", "pose", "tease", "tempt", "virgin", "virgin*",
-            "hookup", "affair", "50 shades", "topless", "onlyfans", "dress up"
-        ]
+        # Filtrar juegos con contenido sexual usando la nueva función
         result["results"] = [
             game for game in result.get("results", [])
-            if not any(keyword in (game.get("name", "").lower() + game.get("description", "").lower())
-                       for keyword in sexual_keywords)
+            if not has_sexual_content(game)
         ]
         
         return result
@@ -136,7 +159,7 @@ def filter_games(
         if not result:
             raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
         
-        # Añadir precios simulados y filtrar por precio si es necesario
+        # Añadir precios simulados y filtrar por precio y contenido sexual
         filtered_results = []
         for game in result.get("results", []):
             # Precio simulado
@@ -149,8 +172,8 @@ def filter_games(
             
             game["price"] = price
             
-            # Filtrar por precio (aplicado localmente ya que RAWG no tiene precios)
-            if (min_price is None or price >= min_price) and (max_price is None or price <= max_price):
+            # Solo añadir juegos sin contenido sexual y que cumplan el filtro de precio
+            if not has_sexual_content(game) and (min_price is None or price >= min_price) and (max_price is None or price <= max_price):
                 filtered_results.append(game)
         
         # Actualizar el recuento y los resultados
@@ -208,24 +231,9 @@ def get_similar_games(
                 all_results.append(game)
         
         # Filtrar juegos con contenido sexual
-        sexual_keywords = [
-            "sexual", "nudity", "adult", "erotic", "porn", "hentai", "ecchi", 
-            "fetish", "provocative", "explicit", "mature", "xxx", "nsfw", 
-            "sensual", "seductive", "intimate", "suggestive", "lewd", "obscene",
-            # Términos adicionales
-            "girlfriend", "boyfriend", "dating", "romance", "sexy", "hot",
-            "love", "kiss", "touching", "strip", "undress", "lingerie", "bra",
-            "underwear", "bikini", "swimsuit", "pleasure", "desire", "passion",
-            "flirt", "seduce", "lust", "fantasy", "waifu", "huniepop", "dream daddy",
-            "hatoful", "boob", "breast", "butt", "ass", "grope", "panty", "thong",
-            "dating sim", "visual novel", "relationship", "body", "naked", "shower",
-            "bath", "beach", "model", "pose", "tease", "tempt", "virgin", "virgin*",
-            "hookup", "affair", "50 shades", "topless", "onlyfans", "dress up"
-        ]
         all_results = [
             game for game in all_results
-            if not any(keyword in (game.get("name", "").lower() + game.get("description", "").lower())
-                       for keyword in sexual_keywords)
+            if not has_sexual_content(game)
         ]
         
         # Aplicar paginación
