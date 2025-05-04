@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { GameService, RecommendedGame } from '../../services/game.service';
+import { RecommendationService } from '../../services/recommendation.service';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -22,7 +23,7 @@ export class RecommendationsComponent implements OnInit {
   defaultGenres: string[] = ['Action', 'RPG', 'Adventure', 'Indie'];
 
   constructor(
-    private gameService: GameService,
+    private recommendationService: RecommendationService,
     private router: Router
   ) { }
 
@@ -38,7 +39,7 @@ export class RecommendationsComponent implements OnInit {
     this.errorMessage = null;
     this.noFavoritesMessage = false;
     
-    this.gameService.getPersonalized()
+    this.recommendationService.getPersonalized()
       .pipe(
         catchError(error => {
           console.error('Error al cargar recomendaciones personalizadas:', error);

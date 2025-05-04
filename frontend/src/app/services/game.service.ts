@@ -74,7 +74,8 @@ export class GameService {
    * @returns Observable con la lista de juegos recomendados personalizados
    */
   getPersonalized(): Observable<RecommendedGame[]> {
-    return this.http.get<RecommendedGame[]>('/recommendations/personalized');
+    // Corrigiendo la URL - debe incluir el prefijo /api y el ID del usuario actual
+    return this.http.get<RecommendedGame[]>('/api/recommendations/personalized');
   }
 
   /**
