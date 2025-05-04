@@ -2,13 +2,23 @@
 
 ## Descripción General
 
-Hidden Gem es una plataforma para recomendar juegos independientes (indies) a los usuarios basándose en sus preferencias. El sistema permite a los usuarios:
+Hidden Gem es una API para recomendaciones de juegos indie. Esta API permite:
+* Gestionar usuarios y sus preferencias de juegos
+* Acceder a juegos de Steam para recomendaciones
+* Permitir a los usuarios marcar sus juegos favoritos
+* Interactuar con la API de RAWG para descubrir nuevos juegos
+* Obtener recomendaciones personalizadas basadas en preferencias
 
-- Registrarse y gestionar su perfil
-- Descubrir juegos indies de Steam
-- Buscar y explorar juegos mediante la API de RAWG
-- Marcar juegos como favoritos
-- Recibir recomendaciones personalizadas basadas en sus preferencias
+## Requisitos Técnicos
+
+* Python 3.8+
+* FastAPI
+* PostgreSQL
+* Dependencias adicionales listadas en `requirements.txt`
+
+## Configuración
+
+La aplicación utiliza variables de entorno para la configuración:
 
 ## Arquitectura del Backend
 

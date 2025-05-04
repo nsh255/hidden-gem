@@ -38,13 +38,17 @@ tags_metadata = [
     {
         "name": "rawg-games",
         "description": "Interacción con la API de RAWG para buscar y obtener información de juegos.",
+        "externalDocs": {
+            "description": "Documentación de RAWG API",
+            "url": "https://api.rawg.io/docs/",
+        },
     },
     {
         "name": "recommendations",
         "description": "Sistema de recomendación de juegos indies basado en preferencias del usuario y análisis de géneros favoritos.",
         "externalDocs": {
             "description": "Algoritmo de recomendación",
-            "url": "https://github.com/yourusername/hidden-gem/wiki/recommendation-algorithm",
+            "url": "https://github.com/nsh255/hidden-gem/wiki/recommendation-algorithm",
         },
     },
 ]
@@ -82,9 +86,29 @@ app = FastAPI(
     }
     ```
     
+    ## Características destacadas
+    
+    * **Recomendaciones personalizadas**: Obtén juegos recomendados basados en tus preferencias y juegos favoritos.
+    * **Integración con RAWG**: Accede a una amplia base de datos de juegos con detalles completos.
+    * **Gestión de favoritos**: Guarda tus juegos favoritos y úsalos para mejorar las recomendaciones.
+    * **Búsqueda avanzada**: Encuentra juegos por género, precio y otros filtros.
+    * **API RESTful**: Interfaces bien documentadas y fáciles de usar.
+    
+    ## Flujos comunes
+    
+    1. **Registro y acceso**:
+       * Registra una cuenta -> Inicia sesión -> Obtén token JWT
+    
+    2. **Gestión de favoritos**:
+       * Busca juegos -> Añade juegos a favoritos -> Consulta tus favoritos
+    
+    3. **Obtener recomendaciones**:
+       * Añade juegos a favoritos -> Solicita recomendaciones personalizadas
+       * O usa directamente los endpoints de recomendación por géneros
+    
     Todos los endpoints están disponibles bajo el prefijo `/api`.
     
-    La API usa PostgreSQL como base de datos y está construida con FastAPI.
+    La documentación detallada de cada endpoint, con ejemplos de solicitudes y respuestas, está disponible en esta página.
     """,
     openapi_tags=tags_metadata,
     docs_url="/docs",
@@ -95,6 +119,26 @@ app = FastAPI(
         "url": "https://github.com/nsh255/hidden-gem",
         "email": "nsh255@inlumine.ual.es",
     },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT",
+    },
+    examples={
+        "recommendation_response": {
+            "summary": "Ejemplo de respuesta de recomendación",
+            "value": [
+                {
+                    "id": 3498,
+                    "nombre": "Grand Theft Auto V",
+                    "generos": ["Action", "Adventure"],
+                    "precio": 29.99,
+                    "descripcion": "A game description...",
+                    "imagen_principal": "https://example.com/gta5.jpg",
+                    "puntuacion": 0.95
+                }
+            ]
+        }
+    }
 )
 
 # Configuración de CORS
