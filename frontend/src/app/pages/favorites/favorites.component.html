@@ -34,7 +34,7 @@
 
   <!-- Lista de juegos favoritos (actualizada para usar los nombres de propiedades correctos) -->
   <div class="favorites-grid" *ngIf="!isLoading && favoriteGames.length > 0">
-    <div class="glass-card favorite-card" *ngFor="let game of favoriteGames" (click)="navigateToGameDetail(game.id)">
+    <div class="glass-card favorite-card" *ngFor="let game of favoriteGames" (click)="navigateToGameDetail(game.id, game)">
       <div class="favorite-image-container glass-image-container">
         <img [src]="game.imagen" [alt]="game.nombre" class="favorite-image">
         <button class="btn btn-secondary btn-remove" [class.removing]="isRemoving[game.id]" (click)="removeFromFavorites(game.id, $event)" [disabled]="isRemoving[game.id]">

@@ -63,8 +63,13 @@ export class GameListComponent implements OnInit {
       });
   }
 
-  navigateToGameDetail(gameId: number): void {
-    this.router.navigate(['/game', gameId]);
+  /**
+   * Navega al detalle del juego
+   * @param gameId ID del juego a ver
+   * @param game Objeto del juego para determinar si es de Steam
+   */
+  navigateToGameDetail(gameId: number, game?: any): void {
+    this.router.navigate(['/steam-game', gameId]);
   }
 
   nextPage(): void {

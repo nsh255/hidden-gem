@@ -49,9 +49,16 @@ export class UserProfileComponent implements OnInit {
     console.debug('User data loaded:', this.user);
     
     // Initialize form with current values
+    // Fix: Use correct handling of precio_max to avoid defaulting to 20 incorrectly
+    const userPrecioMax = this.user.precio_max !== undefined && this.user.precio_max !== null 
+      ? this.user.precio_max 
+      : 20;
+      
+    console.debug('Setting precio_max to:', userPrecioMax, 'Original value from user data:', this.user.precio_max);
+    
     this.profileForm = this.fb.group({
       nick: [this.user.nick, [Validators.required, Validators.minLength(3)]],
-      precio_max: [this.user.precio_max || 20, [Validators.required, Validators.min(0), Validators.max(100)]]
+      precio_max: [userPrecioMax, [Validators.required, Validators.min(0), Validators.max(100)]]
     });
   }
   
@@ -71,7 +78,16 @@ export class UserProfileComponent implements OnInit {
         return;
       }
       
-      this.userService.updateUserProfile({ nick, precio_max })
+      // Get the user ID from current user data
+      const userId = this.user.id;
+      if (!userId) {
+        this.errorMessage = 'No se pudo obtener el ID del usuario';
+        this.isLoading = false;
+        return;
+      }
+      
+      // Use the new method that updates by ID
+      this.userService.updateUserById(userId, { nick, precio_max })
         .subscribe({
           next: (response) => {
             this.isLoading = false;
@@ -80,10 +96,14 @@ export class UserProfileComponent implements OnInit {
             // Update the stored user data
             this.user = { ...this.user, nick, precio_max };
             
-            // Auto-hide success message after 3 seconds
+            // Store updated user data in localStorage
+            localStorage.setItem('user_data', JSON.stringify(this.user));
+            
+            // Show success message for 1 second before reloading
             setTimeout(() => {
-              this.successMessage = null;
-            }, 3000);
+              // Reload the page to refresh all data
+              window.location.reload();
+            }, 1000);
           },
           error: (error) => {
             this.isLoading = false;

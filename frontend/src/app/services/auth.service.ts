@@ -119,11 +119,17 @@ export class AuthService {
         // Guardar el token JWT en localStorage
         localStorage.setItem(this.tokenKey, response.token);
         
+        // Añadir el precio_max al objeto user antes de guardarlo
+        const enhancedUser = {
+          ...response.user,
+          precio_max: precio_max  // Asegurar que el precio_max se guarde con el resto de datos
+        };
+        
         // Guardar la información del usuario en localStorage
-        localStorage.setItem(this.userKey, JSON.stringify(response.user));
+        localStorage.setItem(this.userKey, JSON.stringify(enhancedUser));
         
         // Actualizar el BehaviorSubject con los datos del usuario
-        this.currentUserSubject.next(response.user);
+        this.currentUserSubject.next(enhancedUser);
         
         // Redirigir al usuario a la página de inicio después del registro exitoso
         this.router.navigate(['/home']);

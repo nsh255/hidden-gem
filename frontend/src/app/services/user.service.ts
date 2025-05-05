@@ -32,6 +32,7 @@ export class UserService {
    */
   updateUserProfile(userData: { nick?: string; precio_max?: number }): Observable<any> {
     console.debug('Updating user profile with data:', userData);
+    console.debug('API URL being used:', this.apiUrl);
     
     // Use the AuthService to get the token consistently
     const token = this.authService.getToken();
@@ -47,7 +48,59 @@ export class UserService {
       'Content-Type': 'application/json'
     });
     
-    return this.http.patch(`${this.apiUrl}/users/me`, userData, { headers }).pipe(
+    // Try both paths to see which one works
+    // First: create the path to match the backend structure
+    const url = `${this.apiUrl}/users/me`;
+    console.debug('Full request URL:', url);
+    
+    return this.http.patch(url, userData, { headers }).pipe(
+      tap(response => {
+        console.debug('Profile update successful, updating local data');
+        // Update user data in AuthService
+        this.authService.updateUserData(userData);
+      }),
+      catchError(error => {
+        console.error('Error updating user profile:', error);
+        console.error('Status:', error.status);
+        console.error('Error details:', error.error);
+        
+        if (error.status === 401) {
+          return throwError(() => new Error('Sesión expirada. Por favor, inicia sesión nuevamente.'));
+        }
+        return throwError(() => new Error(`Error al actualizar el perfil: ${error.message || 'Desconocido'}`));
+      })
+    );
+  }
+
+  /**
+   * Actualiza el perfil del usuario por ID
+   * @param userId ID del usuario a actualizar
+   * @param userData Datos a actualizar (nick, precio_max)
+   * @returns Observable con la respuesta
+   */
+  updateUserById(userId: number, userData: { nick?: string; precio_max?: number }): Observable<any> {
+    console.debug('Updating user profile by ID:', userId, 'with data:', userData);
+    console.debug('API URL being used:', this.apiUrl);
+    
+    // Use the AuthService to get the token consistently
+    const token = this.authService.getToken();
+    
+    if (!token) {
+      console.error('No authentication token found');
+      return throwError(() => new Error('User not authenticated'));
+    }
+    
+    // Create headers with the authorization token
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    
+    // Fix the URL to include /api prefix - this is crucial
+    const url = `${this.apiUrl}/api/users/${userId}`;
+    console.debug('Full request URL:', url);
+    
+    return this.http.put(url, userData, { headers }).pipe(
       tap(response => {
         console.debug('Profile update successful, updating local data');
         // Update user data in AuthService

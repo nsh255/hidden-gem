@@ -89,8 +89,20 @@ export class FavoritesComponent implements OnInit {
   /**
    * Navega al detalle del juego
    * @param gameId ID del juego a ver
+   * @param game Objeto del juego para determinar si es de Steam
    */
-  navigateToGameDetail(gameId: number): void {
-    this.router.navigate(['/game', gameId]);
+  navigateToGameDetail(gameId: number, game?: any): void {
+    // Determine if the game is from Steam based on its structure
+    const isSteamGame = game && (game.nombre !== undefined || game.imagen_principal !== undefined);
+    
+    console.log('Navigating to game detail:', gameId, isSteamGame ? '(Steam game)' : '(RAWG game)');
+    
+    if (isSteamGame) {
+      // Use the Steam game endpoint
+      this.router.navigate(['/steam-game', gameId]);
+    } else {
+      // Use the standard RAWG game endpoint
+      this.router.navigate(['/game', gameId]);
+    }
   }
 }

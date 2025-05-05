@@ -50,7 +50,7 @@
 
   <!-- Lista de juegos recomendados -->
   <div class="recommendations-grid" *ngIf="!isLoading && recommendedGames.length > 0">
-    <div class="glass-card recommendation-card" *ngFor="let game of recommendedGames" (click)="navigateToGameDetail(game.id)">
+    <div class="glass-card recommendation-card" *ngFor="let game of recommendedGames" (click)="navigateToGameDetail(game.id, game)">
       <div class="recommendation-image-container glass-image-container">
         <img [src]="game.imagen_principal" [alt]="game.nombre" class="recommendation-image">
         <div class="recommendation-score">{{ (game.puntuacion * 10).toFixed(1) }}</div>

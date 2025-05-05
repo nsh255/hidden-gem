@@ -53,39 +53,6 @@ def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = db.query(models.Usuario).offset(skip).limit(limit).all()
     return users
 
-@router.get("/{user_id}", response_model=schemas.Usuario)
-def read_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
-    if user is None:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return user
-
-@router.put("/{user_id}", response_model=schemas.Usuario)
-def update_user(user_id: int, user: schemas.UsuarioCreate, db: Session = Depends(get_db)):
-    db_user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
-    # Actualizar campos
-    db_user.nick = user.nick
-    db_user.email = user.email
-    db_user.contraseña = get_password_hash(user.contraseña)
-    db_user.precio_max = user.precio_max
-    
-    db.commit()
-    db.refresh(db_user)
-    return db_user
-
-@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    
-    db.delete(db_user)
-    db.commit()
-    return None
-
 @router.get("/me", response_model=schemas.Usuario)
 def read_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """
@@ -142,3 +109,40 @@ def update_current_user(
         return user
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Token inválido o expirado")
+
+@router.get("/{user_id}", response_model=schemas.Usuario)
+def read_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return user
+
+@router.put("/{user_id}", response_model=schemas.Usuario)
+def update_user(user_id: int, user_data: schemas.UsuarioUpdate, db: Session = Depends(get_db)):
+    """
+    Actualiza los datos de un usuario por su ID.
+    No requiere contraseña para actualizaciones simples de perfil.
+    """
+    db_user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Actualizar solo los campos proporcionados
+    user_data_dict = user_data.dict(exclude_unset=True)
+    for key, value in user_data_dict.items():
+        if key != "contraseña":  # No actualizamos la contraseña por este método
+            setattr(db_user, key, value)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    db.delete(db_user)
+    db.commit()
+    return None
