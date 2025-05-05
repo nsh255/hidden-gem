@@ -98,20 +98,39 @@ export class RecommendationService {
           console.error('Error obteniendo recomendaciones personalizadas:', error);
           
           let errorMessage = 'Error al obtener recomendaciones.';
+          let errorDetail = '';
           
-          // Manejar casos específicos
-          if (error.status === 401) {
-            errorMessage = 'Necesitas iniciar sesión para ver recomendaciones personalizadas.';
-          } else if (error.status === 400) {
-            if (error.error?.detail?.includes('favoritos')) {
-              errorMessage = 'Necesitas añadir juegos a favoritos para obtener recomendaciones.';
-            }
-          } else if (error.status === 500) {
-            errorMessage = 'Error del servidor al procesar recomendaciones. Por favor, inténtalo más tarde.';
+          // Extract the error detail from the response
+          if (error.error && typeof error.error === 'object') {
+            errorDetail = error.error.detail || '';
           }
           
-          // Propagar error con mensaje amigable
-          return throwError(() => ({ status: error.status, message: errorMessage, error }));
+          // Normalize error messages for consistent handling
+          if (error.status === 401) {
+            errorMessage = 'Necesitas iniciar sesión para ver recomendaciones personalizadas.';
+          } else if (error.status === 400 || error.status === 500) {
+            if (errorDetail.includes('favoritos') || errorDetail.includes('No tienes juegos favoritos')) {
+              errorMessage = 'Necesitas añadir juegos a favoritos para obtener recomendaciones.';
+              // Create a standardized error object for "no favorites" condition
+              return throwError(() => ({ 
+                status: 400, 
+                message: errorMessage, 
+                error: error,
+                detail: 'No tienes juegos favoritos para generar recomendaciones.' 
+              }));
+            } else if (error.status === 500) {
+              errorMessage = 'Error del servidor al procesar recomendaciones. Por favor, inténtalo más tarde.';
+            }
+          }
+          
+          // Propagar error with standardized format
+          return throwError(() => ({ 
+            status: error.status, 
+            message: errorMessage, 
+            error: error,
+            detail: errorDetail || errorMessage,
+            url: error.url
+          }));
         })
       );
   }

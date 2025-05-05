@@ -25,7 +25,7 @@
       <h2 class="empty-title">Añade juegos a favoritos</h2>
       <p class="empty-message">Necesitamos que marques juegos como favoritos para poder generar recomendaciones personalizadas</p>
       <div class="empty-actions">
-        <button class="btn btn-primary btn-lg" routerLink="/home">
+        <button class="btn btn-primary btn-lg" (click)="navigateToHome()">
           <i class="material-icons">home</i> Ir a la página principal
         </button>
       </div>
@@ -41,7 +41,7 @@
       <h2 class="empty-title">No encontramos recomendaciones</h2>
       <p class="empty-message">Explora más juegos para obtener recomendaciones personalizadas</p>
       <div class="empty-actions">
-        <button class="btn btn-primary btn-lg" routerLink="/home">
+        <button class="btn btn-primary btn-lg" (click)="navigateToHome()">
           <i class="material-icons">home</i> Ir a la página principal
         </button>
       </div>

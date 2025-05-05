@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Security
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from fastapi.security import OAuth2PasswordBearer
@@ -334,7 +335,11 @@ def get_personalized_recommendations(
         
         # Verificar si el usuario tiene juegos favoritos
         if not user.juegos_favoritos or len(user.juegos_favoritos) == 0:
-            raise HTTPException(status_code=400, detail="No tienes juegos favoritos para generar recomendaciones.")
+            # Return consistent error code (400) and clear message
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "No tienes juegos favoritos para generar recomendaciones."}
+            )
         
         # Calcular offset para paginación
         offset = (page - 1) * limit
@@ -384,6 +389,13 @@ def get_personalized_recommendations(
         import traceback
         print(f"Error en recomendaciones personalizadas: {str(e)}")
         print(traceback.format_exc())
+        
+        # Return consistent error code and message for debugging
+        if "No tienes juegos favoritos" in str(e):
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "No tienes juegos favoritos para generar recomendaciones."}
+            )
         
         # Devolver un error de manera controlada
         raise HTTPException(

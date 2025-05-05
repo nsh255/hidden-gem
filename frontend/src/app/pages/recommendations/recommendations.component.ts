@@ -75,14 +75,25 @@ export class RecommendationsComponent implements OnInit {
         catchError(error => {
           console.error('Error al cargar recomendaciones personalizadas:', error);
           
-          // Verificar si el error es por falta de juegos favoritos
-          if (error.status === 400 && error.message?.includes('favoritos')) {
+          // Improved detection for "no favorites" error - check all possible locations
+          const errorDetail = error.error?.detail || error.message || '';
+          const errorStatus = error.status;
+          
+          if (
+            // Look for "no favorites" or "favoritos" in any error message regardless of status code
+            errorDetail.toLowerCase().includes('favoritos') ||
+            errorDetail.toLowerCase().includes('no tienes juegos favoritos') ||
+            // Also check the URL to identify recommendation endpoint errors
+            (error.url && error.url.includes('/recommendations/personalized'))
+          ) {
             this.noFavoritesMessage = true;
-          } else if (error.status === 401) {
+            console.log('No se encontraron juegos favoritos para generar recomendaciones');
+          } else if (errorStatus === 401) {
             // Problema de autenticación
             this.errorMessage = 'Debes iniciar sesión para ver recomendaciones personalizadas.';
           } else {
-            this.errorMessage = error.message || 'No se pudieron cargar las recomendaciones. Por favor, inténtalo de nuevo.';
+            // Acceder al mensaje de error
+            this.errorMessage = errorDetail || 'No se pudieron cargar las recomendaciones. Por favor, inténtalo de nuevo.';
           }
           
           this.isLoading = false;
@@ -93,6 +104,11 @@ export class RecommendationsComponent implements OnInit {
         })
       )
       .subscribe(games => {
+        // Si no hay juegos y no tenemos otro mensaje de error, mostrar mensaje de no favoritos
+        if (games.length === 0 && !this.errorMessage && !this.noFavoritesMessage) {
+          this.noFavoritesMessage = true;
+        }
+        
         // Guardar los juegos y sus IDs
         this.recommendedGames = games;
         games.forEach(game => this.seenGameIds.add(game.id));
@@ -157,5 +173,12 @@ export class RecommendationsComponent implements OnInit {
    */
   navigateToGameDetail(gameId: number): void {
     this.router.navigate(['/game', gameId]);
+  }
+
+  /**
+   * Navega a la página principal
+   */
+  navigateToHome(): void {
+    this.router.navigate(['/home']);
   }
 }

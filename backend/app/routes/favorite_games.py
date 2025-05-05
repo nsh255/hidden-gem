@@ -86,6 +86,69 @@ def add_favorite_to_user(favorite: schemas.FavoritoAdd, db: Session = Depends(ge
     
     return {"message": "Juego añadido a favoritos"}
 
+@router.post("/add-steam-favorite", status_code=status.HTTP_200_OK)
+def add_steam_favorite_to_user(favorite_data: dict, db: Session = Depends(get_db)):
+    """
+    Añade un juego de Steam a los favoritos del usuario.
+    Este endpoint recibe los datos del juego directamente en lugar de buscarlos en RAWG.
+    """
+    usuario_id = favorite_data.get("usuario_id")
+    juego_id = favorite_data.get("juego_id")
+    game_data = favorite_data.get("game_data", {})
+    
+    # Verificar que los datos requeridos estén presentes
+    if not usuario_id or not juego_id or not game_data:
+        raise HTTPException(
+            status_code=400, 
+            detail="Datos incompletos para añadir juego de Steam a favoritos"
+        )
+    
+    # Verificar si el usuario existe
+    user = db.query(models.Usuario).filter(models.Usuario.id == usuario_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    # Verificar si el juego existe en nuestra base de datos
+    game = db.query(models.JuegosFavoritosDeUsuarioQueProvienenDeRawg).filter(
+        models.JuegosFavoritosDeUsuarioQueProvienenDeRawg.id == juego_id
+    ).first()
+    
+    # Si el juego no existe en nuestra base, lo creamos con los datos proporcionados
+    if not game:
+        try:
+            # Extraer datos del juego enviados desde el frontend
+            generos = game_data.get("generos", [])
+            tags = game_data.get("tags", [])
+            
+            # Crear el juego en nuestra base de datos
+            game = models.JuegosFavoritosDeUsuarioQueProvienenDeRawg(
+                id=juego_id,
+                nombre=game_data.get("nombre", "Juego de Steam"),
+                imagen=game_data.get("imagen", ""),
+                descripcion=game_data.get("descripcion", ""),
+                generos=generos,
+                tags=tags
+            )
+            
+            db.add(game)
+            db.commit()
+            db.refresh(game)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error al crear el juego de Steam: {str(e)}"
+            )
+    
+    # Verificar si ya es favorito
+    if game in user.juegos_favoritos:
+        raise HTTPException(status_code=400, detail="El juego ya es favorito del usuario")
+    
+    # Añadir a favoritos
+    user.juegos_favoritos.append(game)
+    db.commit()
+    
+    return {"message": "Juego de Steam añadido a favoritos"}
+
 @router.delete("/remove-favorite", status_code=status.HTTP_200_OK)
 def remove_favorite_from_user(favorite: schemas.FavoritoAdd, db: Session = Depends(get_db)):
     # Verificar si el usuario existe

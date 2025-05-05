@@ -90,6 +90,38 @@ export class UserService {
   }
   
   /**
+   * Añade un juego de Steam a los favoritos del usuario actual
+   * @param gameId ID del juego de Steam
+   * @param gameData Datos completos del juego Steam para guardar
+   * @returns Observable con la respuesta del servidor
+   */
+  addSteamGameToFavorites(gameId: number, gameData: any): Observable<any> {
+    const userId = this.authService.getCurrentUserId();
+    if (!userId) {
+      return throwError(() => new Error('User not authenticated'));
+    }
+    
+    // Create a model compatible with our database structure
+    const steamGameData = {
+      usuario_id: userId,
+      juego_id: gameId,
+      // Include game data so backend doesn't need to fetch from RAWG
+      game_data: {
+        id: gameId,
+        nombre: gameData.name,
+        imagen: gameData.imageUrl,
+        descripcion: gameData.description || '',
+        generos: gameData.genres || [],
+        tags: []
+      },
+      is_steam_game: true
+    };
+    
+    // Use a special endpoint or parameter to indicate this is a Steam game
+    return this.http.post(`${this.apiUrl}/api/favorite-games/add-steam-favorite`, steamGameData);
+  }
+  
+  /**
    * Remueve un juego de los favoritos del usuario
    * @param gameId ID del juego a remover de favoritos
    * @returns Observable con la respuesta del servidor

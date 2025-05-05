@@ -52,6 +52,7 @@ export class GameDetailComponent implements OnInit {
   currentSimilarPage: number = 1;
   hasMoreSimilarGames: boolean = false;
   isLoadingSimilarGames: boolean = false;
+  isSteamGame: boolean = false; // Add this flag to track Steam games
 
   constructor(
     private route: ActivatedRoute,
@@ -65,6 +66,9 @@ export class GameDetailComponent implements OnInit {
   ngOnInit(): void {
     // Check authentication status
     this.isAuthenticated = this.authService.isLoggedIn();
+    
+    // Determine if we're viewing a Steam game based on the route
+    this.isSteamGame = this.router.url.includes('/steam-game/');
 
     // Obtener el ID del juego de la URL
     this.route.paramMap.subscribe(params => {
@@ -247,29 +251,57 @@ export class GameDetailComponent implements OnInit {
       return;
     }
 
-    this.userService.addFavorite(this.gameId)
-      .pipe(
-        catchError(error => {
-          console.error('Error al añadir a favoritos:', error);
-          this.favoriteActionMessage = 'Error al añadir a favoritos. Por favor, inténtalo de nuevo.';
-          this.favoriteActionSuccess = false;
+    // If it's a Steam game, we need to handle it specially
+    if (this.isSteamGame && this.game) {
+      this.userService.addSteamGameToFavorites(this.gameId, this.game)
+        .pipe(
+          catchError(error => {
+            console.error('Error al añadir juego de Steam a favoritos:', error);
+            this.favoriteActionMessage = 'Error al añadir a favoritos. Por favor, inténtalo de nuevo.';
+            this.favoriteActionSuccess = false;
+            this.isAddingToFavorites = false;
+            return of(null);
+          })
+        )
+        .subscribe(response => {
+          if (response) {
+            this.isFavorite = true;
+            this.favoriteActionMessage = '¡Juego añadido a favoritos!';
+            this.favoriteActionSuccess = true;
+          }
           this.isAddingToFavorites = false;
-          return of(null);
-        })
-      )
-      .subscribe(response => {
-        if (response) {
-          this.isFavorite = true;
-          this.favoriteActionMessage = '¡Juego añadido a favoritos!';
-          this.favoriteActionSuccess = true;
-        }
-        this.isAddingToFavorites = false;
-        
-        // Auto-ocultar el mensaje después de 3 segundos
-        setTimeout(() => {
-          this.favoriteActionMessage = null;
-        }, 3000);
-      });
+          
+          // Auto-ocultar el mensaje después de 3 segundos
+          setTimeout(() => {
+            this.favoriteActionMessage = null;
+          }, 3000);
+        });
+    } else {
+      // Regular RAWG game handling
+      this.userService.addFavorite(this.gameId)
+        .pipe(
+          catchError(error => {
+            console.error('Error al añadir a favoritos:', error);
+            this.favoriteActionMessage = 'Error al añadir a favoritos. Por favor, inténtalo de nuevo.';
+            this.favoriteActionSuccess = false;
+            this.isAddingToFavorites = false;
+            return of(null);
+          })
+        )
+        .subscribe(response => {
+          if (response) {
+            this.isFavorite = true;
+            this.favoriteActionMessage = '¡Juego añadido a favoritos!';
+            this.favoriteActionSuccess = true;
+          }
+          this.isAddingToFavorites = false;
+          
+          // Auto-ocultar el mensaje después de 3 segundos
+          setTimeout(() => {
+            this.favoriteActionMessage = null;
+          }, 3000);
+        });
+    }
   }
 
   /**
