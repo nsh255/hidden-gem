@@ -186,4 +186,12 @@ export class RecommendationService {
       puntuacion: (game.rating ? game.rating / 10 : 0.7)  // Convertimos de escala 0-5 a 0-1
     }));
   }
+
+  /**
+   * Obtiene recomendaciones de Steam usando IA a partir de los favoritos del usuario
+   * @param userId ID del usuario
+   */
+  getSteamAIRecommendations(userId: number) {
+    return this.http.post<any[]>('/api/steam-games/recommend-steam-ai', { user_id: userId });
+  }
 }

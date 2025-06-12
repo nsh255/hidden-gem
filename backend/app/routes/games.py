@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any
 from ..database import get_db
 from .. import models, schemas
 from ..utils.rawg_api import rawg_api
+from ..utils.google_ai import classify_games_sexual_content
 from jose import jwt
 from fastapi.security import OAuth2PasswordBearer
 from ..config import settings
@@ -99,12 +100,19 @@ def get_games(
             else:
                 game["price"] = 14.99
         
-        # Filtrar juegos con contenido sexual usando la nueva función
-        result["results"] = [
-            game for game in result.get("results", [])
-            if not has_sexual_content(game)
-        ]
-        
+        # Filtrar juegos con contenido sexual usando la IA
+        games = result.get("results", [])
+        if games:
+            games_for_ai = [
+                {"name": g.get("name", ""), "description": g.get("description", "")} for g in games
+            ]
+            try:
+                flags = classify_games_sexual_content(games_for_ai)
+                result["results"] = [g for g, is_sexual in zip(games, flags) if not is_sexual]
+            except Exception:
+                result["results"] = []
+        else:
+            result["results"] = []
         return result
         
     except Exception as e:
@@ -161,22 +169,31 @@ def filter_games(
         
         # Añadir precios simulados y filtrar por precio y contenido sexual
         filtered_results = []
-        for game in result.get("results", []):
-            # Precio simulado
-            if "rating" in game:
-                base_price = 14.99
-                rating_factor = game.get("rating", 0) / 5.0
-                price = round(base_price + (10 * rating_factor), 2)
-            else:
-                price = 14.99
-            
-            game["price"] = price
-            
-            # Solo añadir juegos sin contenido sexual y que cumplan el filtro de precio
-            if not has_sexual_content(game) and (min_price is None or price >= min_price) and (max_price is None or price <= max_price):
-                filtered_results.append(game)
-        
-        # Actualizar el recuento y los resultados
+        games = result.get("results", [])
+        if games:
+            games_for_ai = [
+                {"name": g.get("name", ""), "description": g.get("description", "")} for g in games
+            ]
+            try:
+                flags = classify_games_sexual_content(games_for_ai)
+                for g, is_sexual in zip(games, flags):
+                    if is_sexual:
+                        continue
+                    # Precio simulado
+                    if "rating" in g:
+                        base_price = 14.99
+                        rating_factor = g.get("rating", 0) / 5.0
+                        price = round(base_price + (10 * rating_factor), 2)
+                    else:
+                        price = 14.99
+                    
+                    g["price"] = price
+                    
+                    # Solo añadir juegos sin contenido sexual y que cumplan el filtro de precio
+                    if (min_price is None or g["price"] >= min_price) and (max_price is None or g["price"] <= max_price):
+                        filtered_results.append(g)
+            except Exception:
+                filtered_results = []
         result["results"] = filtered_results
         result["count"] = len(filtered_results)
         

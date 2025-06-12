@@ -5,6 +5,7 @@ from typing import List, Optional
 from ..database import get_db
 from .. import models, schemas
 from ..utils.rawg_api import rawg_api
+from ..utils.google_ai import classify_games_sexual_content
 
 router = APIRouter(
     prefix="/rawg",
@@ -73,11 +74,20 @@ def search_rawg_games(
     if not result:
         raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
     
-    # Filtrar juegos con contenido sexual usando la nueva función
-    filtered_results = [
-        game for game in result.get("results", [])
-        if not has_sexual_content(game)
-    ]
+    # Filtrar juegos con contenido sexual usando Google AI
+    games = result.get("results", [])
+    if games:
+        # Preparamos solo los campos relevantes para el prompt
+        games_for_ai = [
+            {"name": g.get("name", ""), "description": g.get("description", "")} for g in games
+        ]
+        try:
+            flags = classify_games_sexual_content(games_for_ai)
+            filtered_results = [g for g, is_sexual in zip(games, flags) if not is_sexual]
+        except Exception:
+            filtered_results = []
+    else:
+        filtered_results = []
     result["results"] = filtered_results
     return result
 
@@ -173,6 +183,21 @@ def get_trending_games(
     result = rawg_api.get_trending_games(page, page_size, max_pages)
     if not result:
         raise HTTPException(status_code=503, detail="Error al conectar con RAWG API")
+    # Filtrar con IA
+    games = result.get("results", [])
+    if games:
+        # Preparamos solo los campos relevantes para el prompt
+        games_for_ai = [
+            {"name": g.get("name", ""), "description": g.get("description", "")} for g in games
+        ]
+        try:
+            flags = classify_games_sexual_content(games_for_ai)
+            filtered_results = [g for g, is_sexual in zip(games, flags) if not is_sexual]
+        except Exception:
+            filtered_results = []
+    else:
+        filtered_results = []
+    result["results"] = filtered_results
     return result
 
 @router.get("/random", response_model=dict)
@@ -292,6 +317,16 @@ def get_random_games(
         
         # Take only what we need
         final_games = unique_games[:count]
+        # Filtrar con IA
+        if final_games:
+            games_for_ai = [
+                {"name": g.get("name", ""), "description": g.get("description", "")} for g in final_games
+            ]
+            try:
+                flags = classify_games_sexual_content(games_for_ai)
+                final_games = [g for g, is_sexual in zip(final_games, flags) if not is_sexual]
+            except Exception:
+                final_games = []
         print(f"Returning {len(final_games)} random games")
         
         return {"count": len(final_games), "results": final_games}

@@ -6,22 +6,23 @@
   </div>
 
   <div class="navbar-center">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">Inicio</a>
-    <a routerLink="/games" routerLinkActive="active" class="nav-link">Juegos</a>
-    <a routerLink="/recommendations" routerLinkActive="active" class="nav-link" *ngIf="authService.isLoggedIn()">Recomendaciones</a>
-    <a routerLink="/favorites" routerLinkActive="active" class="nav-link" *ngIf="authService.isLoggedIn()">Favoritos</a>
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-button">Inicio</a>
+    <a routerLink="/games" routerLinkActive="active" class="nav-button">Juegos</a>
+    <a routerLink="/recommendations" routerLinkActive="active" class="nav-button" *ngIf="authService.isLoggedIn()">Recomendaciones</a>
+    <a routerLink="/ai-recommendations" routerLinkActive="active" class="nav-button" *ngIf="authService.isLoggedIn()">Recomendación IA</a>
+    <a routerLink="/favorites" routerLinkActive="active" class="nav-button" *ngIf="authService.isLoggedIn()">Favoritos</a>
   </div>
 
   <div class="navbar-right">
-    <!-- Botones para usuarios no autenticados -->
+    <button class="btn-theme" (click)="toggleTheme()">
+      <span class="material-icons">{{ (themeService.isDarkMode$ | async) ? 'light_mode' : 'dark_mode' }}</span>
+    </button>
     <ng-container *ngIf="!authService.isLoggedIn()">
-      <a routerLink="/auth" routerLinkActive="active" class="btn btn-secondary">Iniciar sesión</a>
-      <a routerLink="/register" routerLinkActive="active" class="btn btn-primary">Registrarse</a>
+      <a routerLink="/auth" routerLinkActive="active" class="btn btn-primary">Iniciar sesión</a>
+      <a routerLink="/register" routerLinkActive="active" class="btn btn-secondary">Registrarse</a>
     </ng-container>
-    
-    <!-- Botones para usuarios autenticados -->
     <ng-container *ngIf="authService.isLoggedIn()">
-      <a routerLink="/profile" routerLinkActive="active" class="btn btn-secondary">Mi Perfil</a>
+      <a routerLink="/profile" routerLinkActive="active" class="btn btn-primary">Mi Perfil</a>
       <button (click)="logout()" class="btn btn-secondary">
         Cerrar sesión
       </button>

@@ -29,7 +29,11 @@ class Settings(BaseSettings):
     # API key para RAWG
     RAWG_API_KEY: str = os.getenv("RAWG_API_KEY", "")
     
+    # API key para Google AI
+    GOOGLE_AI_API_KEY: str = os.getenv("GOOGLE_AI_API_KEY", "")
+    
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Permitir variables extra en .env
 
 settings = Settings()

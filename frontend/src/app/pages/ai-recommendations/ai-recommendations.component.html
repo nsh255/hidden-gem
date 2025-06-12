@@ -1,0 +1,33 @@
+<div class="ai-recommendations-container">
+  <h2>Recomendaciones IA de Steam</h2>
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loader"></div>
+    <p>Cargando recomendaciones IA...</p>
+  </div>
+  <div *ngIf="error" class="error-message glass-container">
+    {{ error }}
+  </div>
+  <div class="recommendations-grid" *ngIf="!isLoading && recommendations.length > 0">
+    <div
+      class="glass-card recommendation-card"
+      *ngFor="let game of recommendations"
+      (click)="navigateToGameDetail(game.id, game)"
+      style="cursor:pointer"
+    >
+      <div class="recommendation-image-container glass-image-container">
+        <img [src]="game.imagen_principal" [alt]="game.nombre" class="recommendation-image">
+      </div>
+      <div class="recommendation-info">
+        <h3 class="recommendation-title">{{ game.nombre }}</h3>
+        <div class="recommendation-genres">
+          <span class="genre-tag" *ngFor="let genre of game.generos.slice(0, 2)">{{ genre }}</span>
+        </div>
+        <div class="recommendation-price">{{ game.precio | currency:'USD':'symbol':'1.2-2' }}</div>
+        <div class="recommendation-description">{{ game.descripcion }}</div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="!isLoading && recommendations.length === 0 && !error">
+    <p>No se encontraron recomendaciones IA.</p>
+  </div>
+</div>

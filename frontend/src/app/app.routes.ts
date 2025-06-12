@@ -34,5 +34,9 @@ export const routes: Routes = [
     path: 'steam-game/:id',
     loadComponent: () => import('./pages/game-detail/game-detail.component').then(m => m.GameDetailComponent)
   },
+  {
+    path: 'ai-recommendations',
+    loadComponent: () => import('./pages/ai-recommendations/ai-recommendations.component').then(m => m.AiRecommendationsComponent)
+  },
   { path: '**', redirectTo: '' }  // Redireccionar a home para rutas no encontradas
 ];

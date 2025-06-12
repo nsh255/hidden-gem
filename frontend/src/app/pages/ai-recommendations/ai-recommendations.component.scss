@@ -1,0 +1,49 @@
+.ai-recommendations-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+.recommendation-card {
+  cursor: pointer;
+  transition: transform 0.2s;
+  &:hover {
+    transform: translateY(-4px) scale(1.03);
+  }
+}
+.recommendation-image-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+}
+.recommendation-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.recommendation-info {
+  padding: 1rem;
+}
+.recommendation-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.recommendation-genres {
+  margin-bottom: 0.5rem;
+}
+.recommendation-price {
+  color: #4caf50;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.recommendation-description {
+  font-size: 0.95rem;
+  color: #555;
+}

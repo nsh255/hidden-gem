@@ -4,12 +4,18 @@ from typing import List, Dict, Any
 from ..database import get_db
 from .. import models, schemas
 from ..utils.steam_scraper import steam_scraper
+from ..utils.google_ai import classify_games_sexual_content
+from pydantic import BaseModel
 import logging
+import json
 
 router = APIRouter(
     prefix="/steam-games",
     tags=["steam-games"],
 )
+
+class SteamAIRequest(BaseModel):
+    user_id: int
 
 @router.post("/", response_model=schemas.JuegoSteam, status_code=status.HTTP_201_CREATED)
 def create_steam_game(game: schemas.JuegoSteamCreate, db: Session = Depends(get_db)):
@@ -213,3 +219,72 @@ def get_steam_games_count(db: Session = Depends(get_db)):
     """
     count = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones).count()
     return {"count": count}
+
+@router.post("/recommend-steam-ai", response_model=List[schemas.JuegoSteam])
+def recommend_steam_games_ai(
+    req: SteamAIRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Recomienda juegos de Steam usando la IA de Google a partir de los juegos favoritos del usuario.
+    """
+    user_id = req.user_id
+    # Obtener juegos favoritos del usuario
+    user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
+    if not user or not user.juegos_favoritos:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado o sin favoritos")
+    fav_games = [{"name": g.nombre, "description": g.descripcion} for g in user.juegos_favoritos]
+
+    # Obtener todos los juegos de Steam
+    steam_games = db.query(models.JuegosScrapeadoDeSteamParaRecomendaiones).all()
+    if not steam_games:
+        return []
+
+    # Preparamos los juegos candidatos para la IA
+    candidates = [{"id": g.id, "name": g.nombre, "description": g.descripcion} for g in steam_games]
+
+    # Prompt para la IA: recomendar juegos de la lista de Steam que mejor encajen con los favoritos
+    prompt = (
+        "Te paso dos listas de juegos en formato JSON. "
+        "La primera lista son los juegos favoritos del usuario. "
+        "La segunda lista son juegos candidatos de Steam. "
+        "Devuélveme una lista JSON de exactamente 10 IDs de los juegos candidatos que más recomendarías al usuario, "
+        "basado en similitud de género, temática y descripción. "
+        "Si no hay suficientes coincidencias, rellena la lista con IDs aleatorios de los candidatos. "
+        "Solo responde la lista JSON de IDs, nada más. Ejemplo: [12, 34, 56, 78, 90, 123, 456, 789, 1011, 1213]\n"
+        "Favoritos: " + json.dumps(fav_games, ensure_ascii=False) + "\n"
+        "Candidatos: " + json.dumps(candidates, ensure_ascii=False)
+    )
+    # Llamada a la IA
+    import os, requests
+    GOOGLE_AI_API_KEY = os.environ.get("GOOGLE_AI_API_KEY")
+    url = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent"  # <-- FIXED URL
+    headers = {"Content-Type": "application/json"}
+    data = {"contents": [{"parts": [{"text": prompt}]}]}
+    params = {"key": GOOGLE_AI_API_KEY}
+    try:
+        resp = requests.post(url, headers=headers, params=params, json=data, timeout=60)
+        resp.raise_for_status()
+        text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        # Extraer la primera lista de números del texto
+        start = text.find('[')
+        end = text.find(']', start)
+        if start != -1 and end != -1:
+            json_str = text[start:end+1]
+            try:
+                ids = json.loads(json_str)
+                if not isinstance(ids, list):
+                    ids = []
+            except Exception:
+                ids = []
+        else:
+            ids = []
+    except Exception as e:
+        ids = []
+    # Fallback: si la IA no devuelve nada, devolver 10 juegos aleatorios
+    if not ids:
+        import random
+        ids = [g.id for g in random.sample(steam_games, min(10, len(steam_games)))]
+    # Buscar los juegos por ID
+    recommended = [g for g in steam_games if g.id in ids]
+    return recommended

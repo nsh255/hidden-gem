@@ -3,8 +3,25 @@
 /* Import modern fonts */
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600&family=Poiret+One&display=swap');
 
-/* Global variables */
+/* Define theme variables */
 :root {
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  
+  /* Border radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  --border-radius: var(--radius-md);
+  --card-border-radius: var(--radius-lg);
+}
+
+/* Light Theme (default) */
+.light-theme {
   /* Color palette - Base */
   --silver-100: #f8f9fb;
   --silver-200: #eef0f5;
@@ -18,8 +35,13 @@
   
   /* Accent colors */
   --accent-blue: #84a9ff;
+  --accent-blue-rgb: 132, 169, 255;
   --accent-purple: #b388ff;
+  --accent-purple-rgb: 179, 136, 255;
   --accent-teal: #8eacbb;
+  --accent-green: #4caf50;
+  --accent-green-rgb: 76, 175, 80;
+  --accent-gold: #ffc107;
   
   /* Theme colors */
   --primary-color: var(--accent-purple);
@@ -31,7 +53,7 @@
   --error-color: #f44336;
   --success-color: #4caf50;
   
-  /* Glassmorphism variables - Enhanced */
+  /* Glassmorphism variables */
   --glass-bg: rgba(255, 255, 255, 0.15);
   --glass-border: rgba(255, 255, 255, 0.25);
   --glass-shadow: rgba(31, 38, 135, 0.15);
@@ -51,20 +73,61 @@
   --primary-gradient: linear-gradient(135deg, rgba(179, 136, 255, 0.7) 0%, rgba(132, 169, 255, 0.7) 100%);
   --silver-gradient: linear-gradient(180deg, var(--silver-300) 0%, var(--silver-400) 100%);
   --bg-gradient: linear-gradient(135deg, #e6eefb 0%, #f2eefa 50%, #e8f1fa 100%);
+}
+
+/* Dark Theme */
+.dark-theme {
+  /* Color palette - Base (Inverted) */
+  --silver-900: #f8f9fb;
+  --silver-800: #eef0f5;
+  --silver-700: #dee1e9;
+  --silver-600: #c2c9d6;
+  --silver-500: #a2afc0;
+  --silver-400: #7d8a9c;
+  --silver-300: #5e6a7e;
+  --silver-200: #384354;
+  --silver-100: #202a3c;
   
-  /* Spacing */
-  --spacing-xs: 0.5rem;
-  --spacing-sm: 1rem;
-  --spacing-md: 1.5rem;
-  --spacing-lg: 2rem;
+  /* Accent colors (slightly darker for dark mode) */
+  --accent-blue: #5a93ff;
+  --accent-blue-rgb: 90, 147, 255;
+  --accent-purple: #9870da;
+  --accent-purple-rgb: 152, 112, 218;
+  --accent-teal: #6a8a9a;
+  --accent-green: #3d9140;
+  --accent-green-rgb: 61, 145, 64;
+  --accent-gold: #e6ac00;
   
-  /* Border radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-full: 9999px;
-  --border-radius: var(--radius-md);
-  --card-border-radius: var(--radius-lg);
+  /* Theme colors */
+  --primary-color: var(--accent-purple);
+  --secondary-color: var(--accent-blue);
+  --text-color: var(--silver-800);
+  --text-light: var(--silver-600);
+  --background-color: #161a23;
+  --surface-color: #1e2430;
+  --error-color: #ff6b5b;
+  --success-color: #5bcc60;
+  
+  /* Glassmorphism variables - Darker for dark mode */
+  --glass-bg: rgba(30, 36, 48, 0.7);
+  --glass-border: rgba(60, 70, 90, 0.3);
+  --glass-shadow: rgba(0, 0, 0, 0.3);
+  --glass-background: var(--glass-bg);
+  --glass-blur: 10px;
+  
+  /* Component-specific glass effects */
+  --glass-card-bg: rgba(30, 36, 48, 0.65);
+  --glass-navbar-bg: rgba(20, 24, 32, 0.75);
+  --glass-modal-bg: rgba(30, 36, 48, 0.85);
+  --glass-input-bg: rgba(30, 36, 48, 0.45);
+  --glass-button-bg: rgba(40, 46, 58, 0.6);
+  --glass-table-bg: rgba(30, 36, 48, 0.4);
+  --glass-dropdown-bg: rgba(30, 36, 48, 0.7);
+  
+  /* Gradients */
+  --primary-gradient: linear-gradient(135deg, rgba(152, 112, 218, 0.7) 0%, rgba(90, 147, 255, 0.7) 100%);
+  --silver-gradient: linear-gradient(180deg, var(--silver-300) 0%, var(--silver-400) 100%);
+  --bg-gradient: linear-gradient(135deg, #111520 0%, #181726 50%, #111620 100%);
 }
 
 /* Base styles */
@@ -74,14 +137,40 @@
   box-sizing: border-box;
 }
 
-html, body {
-  height: 100%;
+html {
   font-family: 'Quicksand', sans-serif;
   font-size: 16px;
   line-height: 1.6;
+  transition: all 0.3s ease-in-out;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
   color: var(--text-color);
   background: var(--bg-gradient);
   background-attachment: fixed;
+}
+
+/* Set default to light theme */
+body {
+  --theme-transition: all 0.3s ease-in-out;
+  transition: var(--theme-transition);
+  
+  &.light-theme {
+    @extend .light-theme;
+  }
+  
+  &.dark-theme {
+    @extend .dark-theme;
+  }
+}
+
+/* Set light theme by default if no theme class is applied */
+body:not(.light-theme):not(.dark-theme) {
+  @extend .light-theme;
 }
 
 /* Typography */
