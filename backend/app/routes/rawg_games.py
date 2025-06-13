@@ -30,7 +30,19 @@ sexual_keywords = [
 
 # Modificación de la función para ser menos estricta
 def has_sexual_content(game):
-    """Comprueba si un juego contiene palabras clave sexuales en su título o descripción"""
+    """
+    Comprueba si un juego contiene palabras clave sexuales en su título o descripción.
+    
+    Esta función implementa un algoritmo de detección para identificar contenido
+    potencialmente inapropiado en los datos del juego. Utiliza una lista de juegos seguros
+    conocidos y diferentes niveles de prioridad para palabras clave.
+    
+    Args:
+        game: Diccionario con datos del juego (debe contener al menos name y puede contener description)
+        
+    Returns:
+        Boolean: True si se detecta contenido sexual, False en caso contrario
+    """
     # Lista de juegos conocidos que son seguros para mostrar 
     safe_game_ids = [3328, 4200, 5286, 12020, 22509, 28, 4291, 32, 802, 58175]
     
@@ -68,7 +80,22 @@ def search_rawg_games(
     page_size: int = Query(20, description="Elementos por página")
 ):
     """
-    Busca juegos en la API de RAWG por nombre
+    Busca juegos en la API de RAWG por nombre.
+    
+    Este endpoint permite buscar juegos en la base de datos de RAWG utilizando un término de búsqueda.
+    Los resultados son filtrados automáticamente para excluir contenido inapropiado utilizando
+    el servicio de IA de Google.
+    
+    Args:
+        query: Término de búsqueda
+        page: Número de página para paginación
+        page_size: Número de resultados por página
+        
+    Returns:
+        Diccionario con resultados paginados de la búsqueda
+        
+    Raises:
+        HTTPException 503: Si hay un error al conectar con la API de RAWG
     """
     result = rawg_api.search_games(query, page, page_size)
     if not result:
@@ -94,7 +121,20 @@ def search_rawg_games(
 @router.get("/game/{game_id}", response_model=dict)
 def get_rawg_game(game_id: int):
     """
-    Obtiene los detalles de un juego específico de RAWG por su ID
+    Obtiene los detalles de un juego específico de RAWG por su ID.
+    
+    Recupera información detallada de un juego desde la API de RAWG y verifica
+    que no contenga contenido inapropiado antes de devolverlo.
+    
+    Args:
+        game_id: ID numérico del juego en la base de datos de RAWG
+        
+    Returns:
+        Diccionario con todos los detalles del juego
+        
+    Raises:
+        HTTPException 404: Si el juego no se encuentra o hay un error en la API
+        HTTPException 400: Si el juego contiene contenido inapropiado
     """
     result = rawg_api.get_game(game_id)
     if not result:
@@ -113,8 +153,22 @@ def add_rawg_game_to_favorites(
     db: Session = Depends(get_db)
 ):
     """
-    Añade un juego de RAWG a los favoritos del usuario, 
-    creando primero el registro del juego si no existe
+    Añade un juego de RAWG a los favoritos del usuario.
+    
+    Este endpoint busca un juego en la API de RAWG y lo añade a la lista de favoritos del usuario.
+    Si el juego no existe en la base de datos local, primero lo crea utilizando los datos de RAWG.
+    
+    Args:
+        user_id: ID del usuario
+        game_id: ID del juego en la API de RAWG
+        db: Sesión de base de datos
+        
+    Returns:
+        El juego añadido a favoritos
+        
+    Raises:
+        HTTPException 404: Si el usuario o el juego no se encuentran
+        HTTPException 400: Si el juego ya está en la lista de favoritos
     """
     # Verificar que el usuario existe
     user = db.query(models.Usuario).filter(models.Usuario.id == user_id).first()
@@ -173,11 +227,19 @@ def get_trending_games(
     Obtiene juegos populares o tendencia desde RAWG.
     
     Esta función permite recuperar más juegos en tendencia combinando resultados de múltiples páginas.
+    Los resultados son filtrados automáticamente para excluir contenido inapropiado.
     
-    - **page**: Página inicial para la búsqueda
-    - **page_size**: Número de juegos por página (máximo recomendado: 40)
-    - **max_pages**: Número de páginas a recuperar (1-5)
-    
+    Args:
+        page: Página inicial para la búsqueda
+        page_size: Número de juegos por página (máximo recomendado: 40)
+        max_pages: Número de páginas a recuperar (1-5)
+        
+    Returns:
+        Diccionario con juegos en tendencia paginados y filtrados
+        
+    Raises:
+        HTTPException 503: Si hay un error al conectar con la API de RAWG
+        
     Ejemplo: Para obtener 100 juegos en tendencia, puedes usar page_size=20 y max_pages=5
     """
     result = rawg_api.get_trending_games(page, page_size, max_pages)
@@ -206,7 +268,21 @@ def get_random_games(
     _t: str = Query(None, description="Timestamp parameter to prevent caching")
 ):
     """
-    Get truly random games by fetching from different pages and using different ordering methods
+    Obtiene una selección verdaderamente aleatoria de juegos.
+    
+    Este endpoint proporciona una selección aleatoria de juegos utilizando diferentes métodos
+    de ordenamiento y páginas para maximizar la variedad. También asigna precios simulados
+    a los juegos basadas en su calificación.
+    
+    Los juegos son filtrados para eliminar contenido inapropiado y se añaden parámetros especiales
+    a las URLs de imágenes para evitar problemas de caché.
+    
+    Args:
+        count: Número de juegos aleatorios a recuperar (entre 1 y 50)
+        _t: Parámetro de timestamp para evitar caché (generado automáticamente)
+        
+    Returns:
+        Diccionario con juegos aleatorios filtrados y con precios
     """
     try:
         import random
@@ -339,6 +415,17 @@ def get_random_games(
 def get_game_screenshots(game_id: int):
     """
     Obtiene las capturas de pantalla de un juego específico.
+    
+    Recupera todas las capturas de pantalla disponibles para un juego desde la API de RAWG.
+    
+    Args:
+        game_id: ID del juego en la API de RAWG
+        
+    Returns:
+        Lista de diccionarios con información de las capturas de pantalla
+        
+    Raises:
+        HTTPException 503: Si hay un error al obtener las capturas
     """
     try:
         screenshots = rawg_api.get_game_screenshots(game_id)

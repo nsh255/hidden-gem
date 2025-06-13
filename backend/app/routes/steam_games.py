@@ -226,7 +226,21 @@ def recommend_steam_games_ai(
     db: Session = Depends(get_db)
 ):
     """
-    Recomienda juegos de Steam usando la IA de Google a partir de los juegos favoritos del usuario.
+    Recomienda juegos de Steam usando inteligencia artificial basándose en los juegos favoritos del usuario.
+    
+    Este endpoint utiliza la API de Google AI para analizar los juegos favoritos del usuario
+    y recomendar juegos similares de la base de datos de Steam. El algoritmo considera
+    la similitud de género, temática y descripción para hacer recomendaciones relevantes.
+    
+    Args:
+        req: Objeto con el ID de usuario
+        db: Sesión de base de datos
+        
+    Returns:
+        Lista de 10 juegos recomendados por la IA
+        
+    Raises:
+        HTTPException 404: Si el usuario no existe o no tiene juegos favoritos
     """
     user_id = req.user_id
     # Obtener juegos favoritos del usuario

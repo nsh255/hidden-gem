@@ -38,7 +38,18 @@ sexual_keywords = [
 
 # Nueva función para verificar si un juego tiene contenido sexual
 def has_sexual_content(game):
-    """Comprueba si un juego contiene palabras clave sexuales en su título o descripción"""
+    """
+    Comprueba si un juego contiene palabras clave sexuales en su título o descripción.
+    
+    Esta función examina el título y la descripción del juego en busca de palabras clave
+    que indiquen contenido de naturaleza sexual o para adultos.
+    
+    Args:
+        game: Diccionario con datos del juego (debe contener al menos name y opcionalmente description)
+        
+    Returns:
+        Boolean: True si se detecta contenido sexual, False en caso contrario
+    """
     # Verificar explícitamente el título (prioridad alta)
     if game.get("name"):
         game_name = game.get("name", "").lower()

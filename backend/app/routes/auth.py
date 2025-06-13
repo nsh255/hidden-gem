@@ -51,10 +51,19 @@ def login(
     """
     Endpoint para iniciar sesión y obtener un token JWT.
     
-    - **username**: El email o nick del usuario
-    - **password**: La contraseña del usuario
+    Este endpoint acepta credenciales en formato de formulario (username y password)
+    y devuelve un token JWT si las credenciales son correctas. El username puede ser
+    tanto el email como el nick del usuario.
     
-    Retorna un token JWT si las credenciales son correctas.
+    Args:
+        form_data: Formulario con username y password
+        db: Sesión de base de datos
+        
+    Returns:
+        Diccionario con token JWT, tipo de token y datos básicos del usuario
+        
+    Raises:
+        HTTPException 401: Si las credenciales son incorrectas
     """
     # Buscar usuario por email o nick
     user = db.query(models.Usuario).filter(
